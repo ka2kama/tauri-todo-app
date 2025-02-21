@@ -1,0 +1,20 @@
+[env]
+CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
+
+[tasks.compile-elm]
+description = "Compile Elm source to JavaScript"
+script = '''
+cd src && elm make src/Main.elm $(find src -name "*.elm" ! -name "Main.elm" -type f) --output=elm.js
+'''
+
+[tasks.build]
+description = "Build Tauri application"
+dependencies = ["compile-elm"]
+command = "cargo"
+args = ["tauri", "build"]
+
+[tasks.dev]
+description = "Run development server"
+dependencies = ["compile-elm"]
+command = "cargo"
+args = ["tauri", "dev"]
