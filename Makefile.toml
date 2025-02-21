@@ -11,6 +11,11 @@ skip_crate_env_info = true
 [env]
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
 
+[env.development]
+RUST_LOG = "debug"
+RUST_BACKTRACE = 1
+RUST_LOG_STYLE = "always"
+
 [tasks.compile-elm]
 description = "Compile Elm source to JavaScript"
 script = '''
@@ -23,7 +28,7 @@ dependencies = ["fmt", "compile-elm"]
 command = "cargo"
 args = ["tauri", "build"]
 
-[tasks.dev]
+[tasks.run]
 description = "Run development server"
 dependencies = ["fmt", "compile-elm"]
 command = "cargo"
