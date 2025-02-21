@@ -1,3 +1,13 @@
+[config]
+# Skip loading of all core tasks which saves up a bit on toml parsing and task creation
+skip_core_tasks = true
+# Skips loading Git related environment variables
+skip_git_env_info = true
+# Skips loading rust related environment variables
+skip_rust_env_info = true
+# Skips loading the current crate related environment variables
+skip_crate_env_info = true
+
 [env]
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
 
@@ -9,12 +19,27 @@ cd src && elm make src/Main.elm $(find src -name "*.elm" ! -name "Main.elm" -typ
 
 [tasks.build]
 description = "Build Tauri application"
-dependencies = ["compile-elm"]
+dependencies = ["fmt", "compile-elm"]
 command = "cargo"
 args = ["tauri", "build"]
 
 [tasks.dev]
 description = "Run development server"
-dependencies = ["compile-elm"]
+dependencies = ["fmt", "compile-elm"]
 command = "cargo"
 args = ["tauri", "dev"]
+
+[tasks.fmt-rust]
+description = "Format Rust code"
+cwd = "src-tauri"
+script = "cargo +nightly fmt --all"
+
+[tasks.fmt-elm]
+description = "Format Elm code"
+script = '''
+cd src && elm-format src/ --yes
+'''
+
+[tasks.fmt]
+description = "Format all source code (Rust and Elm)"
+dependencies = ["fmt-rust", "fmt-elm"]
