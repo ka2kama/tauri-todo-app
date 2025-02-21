@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256px" height="256px" viewBox="0 0 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid">
+    <g>
+        <path d="M128,0 L0,128 L128,256 L256,128 L128,0 Z" fill="#5FB4CB"></path>
+        <path d="M96,96 L96,160 L160,160 L160,96 L96,96 Z" fill="#EEA400"></path>
+        <path d="M32,32 L32,96 L96,96 L96,32 L32,32 Z" fill="#596277"></path>
+        <path d="M160,32 L160,96 L224,96 L224,32 L160,32 Z" fill="#596277"></path>
+        <path d="M32,160 L32,224 L96,224 L96,160 L32,160 Z" fill="#596277"></path>
+        <path d="M160,160 L160,224 L224,224 L224,160 L160,160 Z" fill="#596277"></path>
+    </g>
+</svg>

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tauri App</title>
+    <script src="elm.js"></script>
+  </head>
+
+  <body>
+    <main></main>
+    <script defer>
+      const { invoke } = window.__TAURI__.core;
+
+      // Initialize Elm application
+      const app = Elm.Main.init({
+        node: document.querySelector('main')
+      });
+
+      // Handle commands from Elm
+      app.ports.invoke.subscribe(async (data) => {
+        if (data.cmd === "greet") {
+          const result = await invoke("greet", data.args);
+          app.ports.receiveGreeting.send(result);
+        }
+      });
+    </script>
+  </body>
+</html>
