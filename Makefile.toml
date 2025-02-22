@@ -16,35 +16,35 @@ RUST_LOG = "debug"
 RUST_BACKTRACE = 1
 RUST_LOG_STYLE = "always"
 
-[tasks.compile-elm]
+[tasks.compile-frontend]
 description = "Compile Elm source to JavaScript"
 script = '''
-cd src && elm make src/Main.elm $(find src -name "*.elm" ! -name "Main.elm" -type f) --output=elm.js
+cd frontend && elm make src/Main.elm $(find src -name "*.elm" ! -name "Main.elm" -type f) --output=elm.js
 '''
 
 [tasks.build]
 description = "Build Tauri application"
-dependencies = ["fmt", "compile-elm"]
+dependencies = ["fmt", "compile-frontend"]
 command = "cargo"
 args = ["tauri", "build"]
 
 [tasks.run]
 description = "Run development server"
-dependencies = ["fmt", "compile-elm"]
+dependencies = ["fmt", "compile-frontend"]
 command = "cargo"
 args = ["tauri", "dev"]
 
-[tasks.fmt-rust]
+[tasks.fmt-backend]
 description = "Format Rust code"
 cwd = "src-tauri"
 script = "cargo +nightly fmt --all"
 
-[tasks.fmt-elm]
+[tasks.fmt-frontend]
 description = "Format Elm code"
 script = '''
-cd src && elm-format src/ --yes
+cd frontend && elm-format src/ --yes
 '''
 
 [tasks.fmt]
 description = "Format all source code (Rust and Elm)"
-dependencies = ["fmt-rust", "fmt-elm"]
+dependencies = ["fmt-backend", "fmt-frontend"]
