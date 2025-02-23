@@ -25,22 +25,33 @@ view : Model -> Element Msg
 view model =
     column
         [ centerX
-        , centerY
-        , spacing 20
-        , padding 20
-        , Background.color (rgb255 240 240 240)
-        , Border.rounded 10
+        , width (fill |> maximum 800)
+        , height fill
+        , padding 30
+        , spacing 25
+        , Background.color (rgb255 250 250 250)
+        , Border.rounded 15
+        , Border.shadow
+            { offset = ( 0, 2 )
+            , size = 0
+            , blur = 10
+            , color = rgba 0 0 0 0.1
+            }
         ]
         [ el
             [ centerX
-            , Font.size 24
+            , Font.size 36
             , Font.bold
+            , Font.color (rgb255 51 51 51)
+            , paddingXY 0 10
             ]
-            (text "Counter Example with Ports")
+            (text "Counter")
         , el
             [ centerX
             , Font.size 48
             , Font.bold
+            , Font.color (rgb255 51 51 51)
+            , paddingXY 0 20
             ]
             (text (String.fromInt model.counter))
         , row
@@ -52,12 +63,18 @@ view model =
             ]
         , Input.button
             [ centerX
-            , padding 10
-            , Background.color (rgb255 0 120 215)
+            , padding 12
+            , Background.color (rgb255 130 180 255)
             , Font.color (rgb255 255 255 255)
-            , Border.rounded 5
+            , Border.rounded 10
             , mouseOver
-                [ Background.color (rgb255 0 100 195)
+                [ Background.color (rgb255 100 150 255)
+                , Border.shadow
+                    { offset = ( 0, 2 )
+                    , size = 0
+                    , blur = 4
+                    , color = rgba 0 0 0 0.1
+                    }
                 ]
             ]
             { onPress = Just SaveCounter
@@ -66,9 +83,11 @@ view model =
         , if model.saved then
             el
                 [ centerX
-                , Font.color (rgb255 0 150 0)
+                , Font.color (rgb255 34 197 94)
+                , Font.size 14
+                , paddingXY 0 10
                 ]
-                (text "Counter saved!")
+                (text "Counter saved successfully!")
 
           else
             none
@@ -78,13 +97,25 @@ view model =
 button : String -> Msg -> Element Msg
 button label msg =
     el
-        [ padding 20
-        , Background.color (rgb255 200 200 200)
-        , Border.rounded 5
+        [ padding 15
+        , Background.color (rgb255 255 255 255)
+        , Border.rounded 10
+        , Border.width 1
+        , Border.color (rgb255 230 230 230)
         , mouseOver
-            [ Background.color (rgb255 180 180 180)
+            [ Border.color (rgb255 130 180 255)
+            , Border.shadow
+                { offset = ( 0, 2 )
+                , size = 0
+                , blur = 4
+                , color = rgba 0 0 0 0.05
+                }
             ]
         , onClick msg
         , pointer
+        , Font.size 20
+        , Font.color (rgb255 51 51 51)
+        , width (px 50)
+        , height (px 50)
         ]
-        (text label)
+        (el [ centerX, centerY ] (text label))

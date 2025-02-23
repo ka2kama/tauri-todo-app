@@ -18,16 +18,25 @@ view : Model -> Element Msg
 view model =
     column
         [ centerX
-        , centerY
-        , spacing 20
-        , padding 20
-        , Background.color (rgb255 240 240 240)
-        , Border.rounded 10
+        , width (fill |> maximum 800)
+        , height fill
+        , padding 30
+        , spacing 25
+        , Background.color (rgb255 250 250 250)
+        , Border.rounded 15
+        , Border.shadow
+            { offset = ( 0, 2 )
+            , size = 0
+            , blur = 10
+            , color = rgba 0 0 0 0.1
+            }
         ]
         [ el
             [ centerX
-            , Font.size 24
+            , Font.size 36
             , Font.bold
+            , Font.color (rgb255 51 51 51)
+            , paddingXY 0 10
             ]
             (text "About")
         , paragraph
@@ -35,24 +44,45 @@ view model =
             , padding 20
             , width (fill |> maximum 600)
             , Font.size 16
+            , Font.color (rgb255 71 71 71)
             ]
             [ text "Welcome to our Elm Single Page Application! This is a sample project demonstrating the power and simplicity of Elm for building web applications." ]
         , paragraph
             [ centerX
-            , padding 20
+            , paddingXY 20 10
             , width (fill |> maximum 600)
             , Font.size 16
+            , Font.color (rgb255 71 71 71)
             ]
             [ text "The application showcases various Elm features including:" ]
         , column
             [ centerX
-            , spacing 10
+            , spacing 12
             , padding 20
             , width (fill |> maximum 600)
             ]
-            [ el [] (text "• Type-safe routing")
-            , el [] (text "• Component-based architecture")
-            , el [] (text "• Ports for JavaScript interop")
-            , el [] (text "• Elegant UI with elm-ui")
+            (List.map featureItem
+                [ "Type-safe routing"
+                , "Component-based architecture"
+                , "Ports for JavaScript interop"
+                , "Elegant UI with elm-ui"
+                ]
+            )
+        ]
+
+
+featureItem : String -> Element msg
+featureItem text_ =
+    row
+        [ spacing 10
+        , Font.color (rgb255 71 71 71)
+        ]
+        [ el
+            [ Font.color (rgb255 130 180 255)
+            , Font.size 18
             ]
+            (text "•")
+        , el
+            [ Font.size 16 ]
+            (text text_)
         ]
