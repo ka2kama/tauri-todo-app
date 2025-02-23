@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elm SPA Example</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <script src="/dist/elm.js"></script>
+    <script defer>
+        const { invoke } = window.__TAURI__.core;
+        // Get initial counter from localStorage
+        var initialCounter = localStorage.getItem('counter');
+        
+        // Initialize Elm application
+        var app = Elm.Main.init({
+            node: document.getElementById('app'),
+            flags: null
+        });
+
+        // Send initial counter to Elm if it exists
+        if (initialCounter !== null) {
+            app.ports.loadedCounter.send(parseInt(initialCounter, 10));
+        }
+
+        // Counter port handlers
+        app.ports.saveCounter.subscribe(function(counter) {
+            localStorage.setItem('counter', counter);
+            app.ports.counterSaved.send(true);
+            console.log('Counter saved:', counter);
+        });
+
+        // Todo port handlers
+        app.ports.getTodos.subscribe(async function() {
+            try {
+                const todos = await invoke('get_todos', { command: 'get_todos' });
+                app.ports.todosLoaded.send(todos);
+            } catch (error) {
+                console.error('Error fetching todos:', error);
+            }
+        });
+
+        app.ports.addTodo.subscribe(async function(title) {
+            try {
+                await invoke('add_todo', { 
+                    command: 'add_todo',
+                    params: { title }
+                });
+                app.ports.todoAdded.send(true);
+            } catch (error) {
+                console.error('Error adding todo:', error);
+                app.ports.todoAdded.send(false);
+            }
+        });
+
+        app.ports.deleteTodo.subscribe(async function(id) {
+            try {
+                await invoke('delete_todo', {
+                    command: 'delete_todo',
+                    params: { id }
+                });
+                app.ports.todoDeleted.send(true);
+            } catch (error) {
+                console.error('Error deleting todo:', error);
+                app.ports.todoDeleted.send(false);
+            }
+        });
+
+        app.ports.updateTodo.subscribe(async function(todo) {
+            try {
+                await invoke('update_todo', {
+                    command: 'update_todo',
+                    params: {
+                        id: todo.id,
+                        title: todo.title,
+                        completed: todo.completed
+                    }
+                });
+                app.ports.todoUpdated.send(true);
+            } catch (error) {
+                console.error('Error updating todo:', error);
+                app.ports.todoUpdated.send(false);
+            }
+        });
+    </script>
+</body>
+</html>

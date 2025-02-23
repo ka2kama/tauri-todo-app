@@ -1,0 +1,16 @@
+{
+  "name": "ekm-spa",
+  "version": "1.0.0",
+  "description": "Example SPA using Elm with elm-ui and ports",
+  "scripts": {
+    "start": "elm-spa server",
+    "build": "elm-spa build",
+    "test": "elm-test"
+  },
+  "dependencies": {
+    "elm-spa": "^6.0.4"
+  },
+  "devDependencies": {
+    "elm-test": "0.19.1-revision15"
+  }
+}

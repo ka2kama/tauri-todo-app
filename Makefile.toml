@@ -19,7 +19,7 @@ RUST_LOG_STYLE = "always"
 [tasks.compile-frontend]
 description = "Compile Elm source to JavaScript"
 script = '''
-cd frontend && elm make src/Main.elm $(find src -name "*.elm" ! -name "Main.elm" -type f) --output=elm.js
+cd frontend && pnpm elm-spa build
 '''
 
 [tasks.build]
