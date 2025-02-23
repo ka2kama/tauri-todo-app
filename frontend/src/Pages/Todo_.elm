@@ -1,10 +1,12 @@
-module Pages.Todo_ exposing (Model, Msg(..), view)
+module Pages.Todo_ exposing (Model, Msg(..), Todo, init, subscriptions, update, view)
 
+import Browser.Navigation exposing (Key)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
+import Ports
 
 
 type alias Todo =
@@ -20,12 +22,98 @@ type alias Model =
     }
 
 
+init : Key -> ( Model, Cmd Msg )
+init _ =
+    ( { todos = []
+      , newTodoInput = ""
+      }
+    , Ports.getTodos ()
+    )
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.batch
+        [ Ports.todosLoaded LoadTodos
+        , Ports.todoAdded TodoAdded
+        , Ports.todoDeleted TodoDeleted
+        , Ports.todoUpdated TodoUpdated
+        ]
+
+
 type Msg
     = LoadTodos (List Todo)
     | AddTodo
     | DeleteTodo Int
     | UpdateTodo Todo
     | SetNewTodoInput String
+    | TodoAdded Bool
+    | TodoDeleted Bool
+    | TodoUpdated Bool
+    | NoOp
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        LoadTodos todos ->
+            ( { model | todos = todos }
+            , Cmd.none
+            )
+
+        AddTodo ->
+            if String.trim model.newTodoInput |> String.isEmpty then
+                ( model, Cmd.none )
+
+            else
+                ( { model | newTodoInput = "" }
+                , Ports.addTodo (String.trim model.newTodoInput)
+                )
+
+        DeleteTodo id ->
+            ( model
+            , Ports.deleteTodo id
+            )
+
+        UpdateTodo todo ->
+            ( model
+            , Ports.updateTodo todo
+            )
+
+        SetNewTodoInput input ->
+            ( { model | newTodoInput = input }
+            , Cmd.none
+            )
+
+        TodoAdded success ->
+            if success then
+                ( model
+                , Ports.getTodos ()
+                )
+
+            else
+                ( model, Cmd.none )
+
+        TodoDeleted success ->
+            if success then
+                ( model
+                , Ports.getTodos ()
+                )
+
+            else
+                ( model, Cmd.none )
+
+        TodoUpdated success ->
+            if success then
+                ( model
+                , Ports.getTodos ()
+                )
+
+            else
+                ( model, Cmd.none )
+
+        NoOp ->
+            ( model, Cmd.none )
 
 
 view : Model -> Element Msg

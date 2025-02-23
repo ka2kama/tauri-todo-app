@@ -15,15 +15,15 @@ type Msg
 
 
 view : Model -> Element Msg
-view model =
+view _ =
     column
         [ centerX
         , width (fill |> maximum 800)
         , height fill
         , padding 30
         , spacing 25
-        , Background.color (rgb255 250 250 250)
-        , Border.rounded 15
+        , Background.color (rgb255 240 240 240)
+        , Border.rounded 10
         , Border.shadow
             { offset = ( 0, 2 )
             , size = 0

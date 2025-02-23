@@ -32,20 +32,12 @@ type Page
     = HomePage
     | AboutPage
     | TodoPage
-
-
-type alias Todo =
-    { id : Int
-    , title : String
-    , completed : Bool
-    }
+    | CounterPage
 
 
 type alias Shared =
     { counter : Int
     , saved : Bool
-    , todos : List Todo
-    , newTodoInput : String
     }
 
 
@@ -57,14 +49,6 @@ type Msg
     | SaveCounter
     | CounterSaved Bool
     | LoadedCounter Int
-    | LoadTodos (List Todo)
-    | AddTodo
-    | DeleteTodo Int
-    | UpdateTodo Todo
-    | SetNewTodoInput String
-    | TodoAdded Bool
-    | TodoDeleted Bool
-    | TodoUpdated Bool
     | NoOp
 
 
@@ -76,11 +60,9 @@ init _ url key =
       , shared =
             { counter = 0
             , saved = False
-            , todos = []
-            , newTodoInput = ""
             }
       }
-    , Ports.getTodos ()
+    , Cmd.none
     )
 
 
@@ -97,15 +79,14 @@ update msg model =
                         "/todo" ->
                             TodoPage
 
+                        "/counter" ->
+                            CounterPage
+
                         _ ->
                             HomePage
             in
             ( { model | url = url, page = page }
-            , if page == TodoPage then
-                Ports.getTodos ()
-
-              else
-                Cmd.none
+            , Cmd.none
             )
 
         LinkClicked (Browser.Internal url) ->
@@ -119,8 +100,6 @@ update msg model =
                 | shared =
                     { counter = model.shared.counter + 1
                     , saved = model.shared.saved
-                    , todos = model.shared.todos
-                    , newTodoInput = model.shared.newTodoInput
                     }
               }
             , Cmd.none
@@ -131,8 +110,6 @@ update msg model =
                 | shared =
                     { counter = model.shared.counter - 1
                     , saved = model.shared.saved
-                    , todos = model.shared.todos
-                    , newTodoInput = model.shared.newTodoInput
                     }
               }
             , Cmd.none
@@ -143,8 +120,6 @@ update msg model =
                 | shared =
                     { counter = model.shared.counter
                     , saved = False
-                    , todos = model.shared.todos
-                    , newTodoInput = model.shared.newTodoInput
                     }
               }
             , Ports.saveCounter model.shared.counter
@@ -155,8 +130,6 @@ update msg model =
                 | shared =
                     { counter = model.shared.counter
                     , saved = saved
-                    , todos = model.shared.todos
-                    , newTodoInput = model.shared.newTodoInput
                     }
               }
             , Cmd.none
@@ -167,72 +140,9 @@ update msg model =
                 | shared =
                     { counter = value
                     , saved = True
-                    , todos = model.shared.todos
-                    , newTodoInput = model.shared.newTodoInput
                     }
               }
             , Cmd.none
-            )
-
-        LoadTodos todos ->
-            ( { model
-                | shared =
-                    { counter = model.shared.counter
-                    , saved = model.shared.saved
-                    , todos = todos
-                    , newTodoInput = model.shared.newTodoInput
-                    }
-              }
-            , Cmd.none
-            )
-
-        AddTodo ->
-            ( { model
-                | shared =
-                    { counter = model.shared.counter
-                    , saved = model.shared.saved
-                    , todos = model.shared.todos
-                    , newTodoInput = ""
-                    }
-              }
-            , Ports.addTodo model.shared.newTodoInput
-            )
-
-        DeleteTodo id ->
-            ( model
-            , Ports.deleteTodo id
-            )
-
-        UpdateTodo todo ->
-            ( model
-            , Ports.updateTodo todo
-            )
-
-        SetNewTodoInput input ->
-            ( { model
-                | shared =
-                    { counter = model.shared.counter
-                    , saved = model.shared.saved
-                    , todos = model.shared.todos
-                    , newTodoInput = input
-                    }
-              }
-            , Cmd.none
-            )
-
-        TodoAdded _ ->
-            ( model
-            , Ports.getTodos ()
-            )
-
-        TodoDeleted _ ->
-            ( model
-            , Ports.getTodos ()
-            )
-
-        TodoUpdated _ ->
-            ( model
-            , Ports.getTodos ()
             )
 
         NoOp ->
@@ -244,8 +154,4 @@ subscriptions _ =
     Sub.batch
         [ Ports.counterSaved CounterSaved
         , Ports.loadedCounter LoadedCounter
-        , Ports.todosLoaded LoadTodos
-        , Ports.todoAdded TodoAdded
-        , Ports.todoDeleted TodoDeleted
-        , Ports.todoUpdated TodoUpdated
         ]
