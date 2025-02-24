@@ -4,6 +4,7 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
+import Element.Input as Input
 
 
 type alias Model =
@@ -48,4 +49,43 @@ view _ =
             , Font.center
             ]
             [ text "This is a simple todo application built with Tauri, Elm, and SQLite. Use the navigation menu to explore different features." ]
+        , row
+            [ centerX
+            , spacing 20
+            , paddingXY 0 10
+            ]
+            [ link
+                [ Background.color (rgb255 59 130 246)
+                , Font.color (rgb255 255 255 255)
+                , padding 15
+                , Border.rounded 8
+                , mouseOver
+                    [ Background.color (rgb255 37 99 235) ]
+                ]
+                { url = "/counter"
+                , label = text "Counter"
+                }
+            , link
+                [ Background.color (rgb255 59 130 246)
+                , Font.color (rgb255 255 255 255)
+                , padding 15
+                , Border.rounded 8
+                , mouseOver
+                    [ Background.color (rgb255 37 99 235) ]
+                ]
+                { url = "/todo"
+                , label = text "Todo"
+                }
+            , link
+                [ Background.color (rgb255 59 130 246)
+                , Font.color (rgb255 255 255 255)
+                , padding 15
+                , Border.rounded 8
+                , mouseOver
+                    [ Background.color (rgb255 37 99 235) ]
+                ]
+                { url = "/about"
+                , label = text "About"
+                }
+            ]
         ]
