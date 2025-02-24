@@ -8,6 +8,7 @@ import Pages.Counter_
 import Pages.Home_
 import Pages.Todo_
 import Shared
+import Styles exposing (defaultTheme)
 import Url exposing (Url)
 
 
@@ -140,11 +141,11 @@ view model =
     , body =
         [ Element.layout [] <|
             column [ width fill, height fill ]
-                [ row [ width fill, padding 20, spacing 20 ]
-                    [ link [] { url = "/", label = text "Home" }
-                    , link [] { url = "/about", label = text "About" }
-                    , link [] { url = "/todo", label = text "Todo" }
-                    , link [] { url = "/counter", label = text "Counter" }
+                [ Styles.navBar defaultTheme
+                    [ Styles.navLink defaultTheme { url = "/", label = "Home" }
+                    , Styles.navLink defaultTheme { url = "/about", label = "About" }
+                    , Styles.navLink defaultTheme { url = "/todo", label = "Todo" }
+                    , Styles.navLink defaultTheme { url = "/counter", label = "Counter" }
                     ]
                 , el [ width fill, height fill ] <|
                     case model.shared.page of

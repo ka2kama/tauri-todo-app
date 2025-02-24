@@ -7,6 +7,9 @@ import Test exposing (..)
 import Url
 
 
+-- TYPES
+
+
 {-| A simplified model for testing that omits the navigation key
 -}
 type alias TestModel =
@@ -22,7 +25,29 @@ type alias SharedData =
     }
 
 
-{-| A simplified update function for testing that doesn't handle navigation
+-- HELPERS
+
+
+{-| Create a test model with default values that can be overridden
+-}
+createTestModel : SharedData -> TestModel
+createTestModel shared =
+    { url = createTestUrl "/"
+    , page = HomePage
+    , shared = shared
+    }
+
+
+{-| Create a test URL with a given path
+-}
+createTestUrl : String -> Url.Url
+createTestUrl path =
+    Url.fromString ("http://localhost:1234" ++ path)
+        |> Maybe.withDefault
+            (Url.Url Url.Http "localhost" (Just 1234) "/" Nothing Nothing)
+
+
+{-| Update the test model with a message
 -}
 testUpdate : Msg -> TestModel -> ( TestModel, Cmd Msg )
 testUpdate msg model =
@@ -54,6 +79,12 @@ testUpdate msg model =
                         "/about" ->
                             AboutPage
 
+                        "/todo" ->
+                            TodoPage
+
+                        "/counter" ->
+                            CounterPage
+
                         _ ->
                             HomePage
             in
@@ -63,11 +94,14 @@ testUpdate msg model =
             ( model, Cmd.none )
 
 
+-- TESTS
+
+
 suite : Test
 suite =
     describe "Shared"
-        [ describe "Shared State"
-            [ test "initial shared state" <|
+        [ describe "Initial State"
+            [ test "shared state starts with expected defaults" <|
                 \_ ->
                     let
                         shared =
@@ -80,128 +114,84 @@ suite =
                         shared
             ]
         , describe "Counter Operations"
-            [ test "increment increases counter" <|
-                \_ ->
-                    let
-                        model =
+            (let
+                testCounterOperation : String -> Msg -> Int -> Test
+                testCounterOperation description msg expectedChange =
+                    test description <|
+                        \_ ->
+                            let
+                                initialCounter =
+                                    5
+
+                                ( updatedModel, _ ) =
+                                    createTestModel
+                                        { counter = initialCounter
+                                        , saved = False
+                                        }
+                                        |> testUpdate msg
+                            in
+                            updatedModel.shared.counter
+                                |> Expect.equal (initialCounter + expectedChange)
+             in
+             [ testCounterOperation "increment increases counter by 1" Increment 1
+             , testCounterOperation "decrement decreases counter by 1" Decrement -1
+             ]
+            )
+        , describe "Save Counter Functionality"
+            (let
+                testSaveOperation : String -> Bool -> Msg -> Bool -> Test
+                testSaveOperation description initialSaved msg expectedSaved =
+                    test description <|
+                        \_ ->
                             createTestModel
                                 { counter = 5
-                                , saved = False
+                                , saved = initialSaved
                                 }
+                                |> testUpdate msg
+                                |> Tuple.first
+                                |> .shared
+                                |> .saved
+                                |> Expect.equal expectedSaved
+             in
+             [ testSaveOperation "SaveCounter resets saved flag" True SaveCounter False
+             , testSaveOperation "CounterSaved updates saved state" False (CounterSaved True) True
+             ]
+            )
+        , describe "URL-based Page Routing"
+            (let
+                testCases =
+                    [ ( "/", HomePage, "root path" )
+                    , ( "/about", AboutPage, "about page" )
+                    , ( "/todo", TodoPage, "todo page" )
+                    , ( "/counter", CounterPage, "counter page" )
+                    , ( "/unknown", HomePage, "unknown path" )
+                    ]
+             in
+             List.map
+                (\( path, expectedPage, description ) ->
+                    test ("maps " ++ description ++ " correctly") <|
+                        \_ ->
+                            let
+                                url =
+                                    createTestUrl path
 
-                        ( updatedModel, _ ) =
-                            testUpdate Increment model
-                    in
-                    Expect.equal updatedModel.shared.counter 6
-            , test "decrement decreases counter" <|
+                                ( updatedModel, _ ) =
+                                    createTestModel
+                                        { counter = 0
+                                        , saved = False
+                                        }
+                                        |> testUpdate (UrlChanged url)
+                            in
+                            updatedModel.page
+                                |> Expect.equal expectedPage
+                )
+                testCases
+            )
+        , describe "Flags Handling"
+            [ test "can encode and decode empty flags" <|
                 \_ ->
-                    let
-                        model =
-                            createTestModel
-                                { counter = 5
-                                , saved = False
-                                }
-
-                        ( updatedModel, _ ) =
-                            testUpdate Decrement model
-                    in
-                    Expect.equal updatedModel.shared.counter 4
-            ]
-        , describe "Save Counter"
-            [ test "SaveCounter sets saved to false and triggers port" <|
-                \_ ->
-                    let
-                        model =
-                            createTestModel
-                                { counter = 5
-                                , saved = True
-                                }
-
-                        ( updatedModel, _ ) =
-                            testUpdate SaveCounter model
-                    in
-                    Expect.equal updatedModel.shared.saved False
-            , test "CounterSaved updates saved state" <|
-                \_ ->
-                    let
-                        model =
-                            createTestModel
-                                { counter = 5
-                                , saved = False
-                                }
-
-                        ( updatedModel, _ ) =
-                            testUpdate (CounterSaved True) model
-                    in
-                    Expect.equal updatedModel.shared.saved True
-            ]
-        , describe "URL Handling"
-            [ test "root URL maps to HomePage" <|
-                \_ ->
-                    let
-                        model =
-                            createTestModel
-                                { counter = 0
-                                , saved = False
-                                }
-
-                        url =
-                            Url.fromString "http://localhost:1234/" |> Maybe.withDefault model.url
-
-                        ( updatedModel, _ ) =
-                            testUpdate (UrlChanged url) model
-                    in
-                    Expect.equal updatedModel.page HomePage
-            , test "/about URL maps to AboutPage" <|
-                \_ ->
-                    let
-                        model =
-                            createTestModel
-                                { counter = 0
-                                , saved = False
-                                }
-
-                        url =
-                            Url.fromString "http://localhost:1234/about" |> Maybe.withDefault model.url
-
-                        ( updatedModel, _ ) =
-                            testUpdate (UrlChanged url) model
-                    in
-                    Expect.equal updatedModel.page AboutPage
-            , test "unknown URL maps to HomePage" <|
-                \_ ->
-                    let
-                        model =
-                            createTestModel
-                                { counter = 0
-                                , saved = False
-                                }
-
-                        url =
-                            Url.fromString "http://localhost:1234/unknown" |> Maybe.withDefault model.url
-
-                        ( updatedModel, _ ) =
-                            testUpdate (UrlChanged url) model
-                    in
-                    Expect.equal updatedModel.page HomePage
-            ]
-        , describe "Flags"
-            [ test "can decode empty flags" <|
-                \_ ->
-                    let
-                        flags =
-                            Encode.object []
-                    in
-                    Expect.equal (Encode.encode 0 flags) "{}"
+                    Encode.object []
+                        |> Encode.encode 0
+                        |> Expect.equal "{}"
             ]
         ]
-
-
-{-| Helper function to create a test model
--}
-createTestModel : SharedData -> TestModel
-createTestModel shared =
-    { url = Url.fromString "http://localhost:1234/" |> Maybe.withDefault (Url.Url Url.Http "localhost" (Just 1234) "/" Nothing Nothing)
-    , page = HomePage
-    , shared = shared
-    }

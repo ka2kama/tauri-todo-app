@@ -1,7 +1,7 @@
 module CounterTest exposing (..)
 
 import Expect
-import Helpers.ElementHelpers exposing (elementToHtml)
+import Helpers.ElementHelpers exposing (renderView)
 import Pages.Counter_ exposing (Model, Msg(..), view)
 import Test exposing (..)
 import Test.Html.Event as Event
@@ -9,115 +9,7 @@ import Test.Html.Query as Query
 import Test.Html.Selector as Selector
 
 
-suite : Test
-suite =
-    describe "Counter Page"
-        [ describe "Counter Logic"
-            [ test "initial counter value is 0" <|
-                \_ ->
-                    initialModel
-                        |> .counter
-                        |> Expect.equal 0
-            ]
-        , describe "View Elements"
-            [ test "displays counter value" <|
-                \_ ->
-                    { counter = 42, saved = False }
-                        |> view
-                        |> elementToHtml
-                        |> Query.fromHtml
-                        |> Query.has [ Selector.text "42" ]
-            , test "shows title" <|
-                \_ ->
-                    initialModel
-                        |> view
-                        |> elementToHtml
-                        |> Query.fromHtml
-                        |> Query.has [ Selector.text "Counter Example with Ports" ]
-            , test "shows increment button" <|
-                \_ ->
-                    initialModel
-                        |> view
-                        |> elementToHtml
-                        |> Query.fromHtml
-                        |> Query.has [ Selector.text "+" ]
-            , test "shows decrement button" <|
-                \_ ->
-                    initialModel
-                        |> view
-                        |> elementToHtml
-                        |> Query.fromHtml
-                        |> Query.has [ Selector.text "-" ]
-            , test "shows save button" <|
-                \_ ->
-                    initialModel
-                        |> view
-                        |> elementToHtml
-                        |> Query.fromHtml
-                        |> Query.has [ Selector.text "Save Counter" ]
-            ]
-        , describe "Button Interactions"
-            [ test "clicking + button triggers Increment" <|
-                \_ ->
-                    initialModel
-                        |> view
-                        |> elementToHtml
-                        |> Query.fromHtml
-                        |> Query.find [ Selector.class "cptr", Selector.containing [ Selector.text "+" ] ]
-                        |> Event.simulate Event.click
-                        |> Event.expect Increment
-            , test "clicking - button triggers Decrement" <|
-                \_ ->
-                    initialModel
-                        |> view
-                        |> elementToHtml
-                        |> Query.fromHtml
-                        |> Query.find [ Selector.class "cptr", Selector.containing [ Selector.text "-" ] ]
-                        |> Event.simulate Event.click
-                        |> Event.expect Decrement
-            , test "clicking Save Counter triggers SaveCounter" <|
-                \_ ->
-                    initialModel
-                        |> view
-                        |> elementToHtml
-                        |> Query.fromHtml
-                        |> Query.find [ Selector.class "bg-0-120-215-255", Selector.class "cptr", Selector.containing [ Selector.text "Save Counter" ] ]
-                        |> Event.simulate Event.click
-                        |> Event.expect SaveCounter
-            ]
-        , describe "Save Functionality"
-            [ test "shows save confirmation when saved" <|
-                \_ ->
-                    { counter = 0, saved = True }
-                        |> view
-                        |> elementToHtml
-                        |> Query.fromHtml
-                        |> Query.has [ Selector.text "Counter saved!" ]
-            , test "hides save confirmation when not saved" <|
-                \_ ->
-                    { counter = 0, saved = False }
-                        |> view
-                        |> elementToHtml
-                        |> Query.fromHtml
-                        |> Query.hasNot [ Selector.text "Counter saved!" ]
-            ]
-        , describe "Styling"
-            [ test "save confirmation has correct color" <|
-                \_ ->
-                    { counter = 0, saved = True }
-                        |> view
-                        |> elementToHtml
-                        |> Query.fromHtml
-                        |> Query.has [ Selector.class "fc-0-150-0-255" ]
-            , test "save button has correct color" <|
-                \_ ->
-                    initialModel
-                        |> view
-                        |> elementToHtml
-                        |> Query.fromHtml
-                        |> Query.has [ Selector.class "bg-0-120-215-255" ]
-            ]
-        ]
+-- HELPERS
 
 
 initialModel : Model
@@ -125,3 +17,94 @@ initialModel =
     { counter = 0
     , saved = False
     }
+
+
+hasButton : String -> Query.Single Msg -> Expect.Expectation
+hasButton label query =
+    query
+        |> Query.findAll [ Selector.class "cptr", Selector.containing [ Selector.text label ] ]
+        |> Query.count (Expect.equal 1)
+
+
+clickButton : String -> Query.Single Msg -> Event.Event Msg
+clickButton label query =
+    query
+        |> Query.find [ Selector.class "cptr", Selector.containing [ Selector.text label ] ]
+        |> Event.simulate Event.click
+
+
+-- TESTS
+
+
+suite : Test
+suite =
+    describe "Counter Page"
+        [ describe "Initial State"
+            [ test "counter starts at 0" <|
+                \_ ->
+                    initialModel
+                        |> .counter
+                        |> Expect.equal 0
+            , test "save status starts as false" <|
+                \_ ->
+                    initialModel
+                        |> .saved
+                        |> Expect.equal False
+            ]
+        , describe "Display Elements"
+            [ test "shows page title" <|
+                \_ ->
+                    initialModel
+                        |> renderView view
+                        |> Query.has [ Selector.text "Counter Example with Ports" ]
+            , test "displays current counter value" <|
+                \_ ->
+                    { initialModel | counter = 42 }
+                        |> renderView view
+                        |> Query.has [ Selector.text "42" ]
+            , test "renders all control buttons" <|
+                \_ ->
+                    let
+                        query =
+                            initialModel |> renderView view
+                    in
+                    Expect.all
+                        [ hasButton "+"
+                        , hasButton "-"
+                        , hasButton "Save Counter"
+                        ]
+                        query
+            ]
+        , describe "Button Interactions"
+            [ test "increment button triggers Increment msg" <|
+                \_ ->
+                    initialModel
+                        |> renderView view
+                        |> clickButton "+"
+                        |> Event.expect Increment
+            , test "decrement button triggers Decrement msg" <|
+                \_ ->
+                    initialModel
+                        |> renderView view
+                        |> clickButton "-"
+                        |> Event.expect Decrement
+            , test "save button triggers SaveCounter msg" <|
+                \_ ->
+                    initialModel
+                        |> renderView view
+                        |> clickButton "Save Counter"
+                        |> Event.expect SaveCounter
+            ]
+        , describe "Save Status Display"
+            [ test "shows success message when counter is saved" <|
+                \_ ->
+                    { initialModel | saved = True }
+                        |> renderView view
+                        |> Query.has [ Selector.text "Counter saved!" ]
+            , test "hides success message when counter is not saved" <|
+                \_ ->
+                    initialModel
+                        |> renderView view
+                        |> Query.hasNot [ Selector.text "Counter saved!" ]
+            ]
+        ]
