@@ -1,12 +1,14 @@
-module Pages.Counter_ exposing (Model, Msg(..), view)
+module Pages.Counter_ exposing (Model, Msg(..), init, subscriptions, update, view)
 
+import Browser.Navigation as Nav
 import Element exposing (..)
+import Ports
 import Styles exposing (defaultTheme)
 
 
 type alias Model =
-    { counter : Int -- Current counter value
-    , saved : Bool -- Indicates if the counter was successfully saved
+    { counter : Int
+    , saved : Bool
     }
 
 
@@ -15,6 +17,53 @@ type Msg
     | Decrement
     | SaveCounter
     | CounterSaved Bool
+    | LoadedCounter Int
+
+
+init : Nav.Key -> ( Model, Cmd Msg )
+init _ =
+    ( { counter = 0
+      , saved = False
+      }
+    , Cmd.none
+    )
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        Increment ->
+            ( { model | counter = model.counter + 1 }
+            , Cmd.none
+            )
+
+        Decrement ->
+            ( { model | counter = model.counter - 1 }
+            , Cmd.none
+            )
+
+        SaveCounter ->
+            ( { model | saved = False }
+            , Ports.saveCounter model.counter
+            )
+
+        CounterSaved saved ->
+            ( { model | saved = saved }
+            , Cmd.none
+            )
+
+        LoadedCounter value ->
+            ( { model | counter = value, saved = True }
+            , Cmd.none
+            )
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.batch
+        [ Ports.counterSaved CounterSaved
+        , Ports.loadedCounter LoadedCounter
+        ]
 
 
 view : Model -> Element Msg
