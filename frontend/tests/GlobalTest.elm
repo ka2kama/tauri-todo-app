@@ -60,13 +60,13 @@ testUpdate msg model =
 
         LinkClicked urlRequest ->
             case urlRequest of
-                Browser.Internal url ->
+                Browser.Internal _ ->
                     ( model, Cmd.none )
 
                 Browser.External _ ->
                     ( model, Cmd.none )
 
-        NoOp ->
+        _ ->
             ( model, Cmd.none )
 
 

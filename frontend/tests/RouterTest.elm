@@ -1,7 +1,7 @@
 module RouterTest exposing (..)
 
 import Expect
-import Router exposing (Page(..), Route, fromUrl, toString)
+import Router exposing (Page(..), fromUrl, toString)
 import Test exposing (..)
 import Url
 

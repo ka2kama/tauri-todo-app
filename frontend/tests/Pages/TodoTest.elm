@@ -1,10 +1,11 @@
-module TodoTest exposing (..)
+module Pages.TodoTest exposing (..)
 
 import Expect
-import Pages.Todo_ exposing (Model, Msg(..), Todo, update)
-import Ports
+import Pages.Todo_ exposing (Model, Msg(..), update)
+import Lib.Todo.Domain.Todo exposing (Todo)
+import Lib.Todo.Api.TodoApi as TodoApi
 import Test exposing (..)
-
+import Global exposing (LoadingState(..))
 
 -- HELPERS
 
@@ -13,6 +14,7 @@ initialModel : Model
 initialModel =
     { todos = []
     , newTodoInput = ""
+    , loadingState = NotLoading
     }
 
 
@@ -29,9 +31,10 @@ createModelWithTodos todos =
     { initialModel | todos = todos }
 
 
-createModelWithInput : String -> Model
-createModelWithInput input =
-    { initialModel | newTodoInput = input }
+createModelWithInput : String -> Global.LoadingState -> Model
+createModelWithInput input loadingState=
+    { initialModel | newTodoInput = input
+    ,loadingState =  loadingState}
 
 
 expectCmd : Cmd Msg -> Cmd Msg -> Expect.Expectation
@@ -61,6 +64,7 @@ suite =
                         |> Expect.equal
                             { todos = []
                             , newTodoInput = ""
+                            , loadingState = NotLoading
                             }
             ]
         , describe "Todo List Management"
@@ -105,17 +109,17 @@ suite =
             [ describe "invalid inputs"
                 [ test "empty input is ignored" <|
                     \_ ->
-                        createModelWithInput ""
+                        createModelWithInput "" NotLoading
                             |> update AddTodo
                             |> expectModelAndCmd
-                                (createModelWithInput "")
+                                (createModelWithInput "" NotLoading)
                                 Cmd.none
                 , test "whitespace-only input is ignored" <|
                     \_ ->
-                        createModelWithInput "   "
+                        createModelWithInput "   " NotLoading
                             |> update AddTodo
                             |> expectModelAndCmd
-                                (createModelWithInput "   ")
+                                (createModelWithInput "   " NotLoading)
                                 Cmd.none
                 ]
             , test "valid input sends command and clears input" <|
@@ -125,12 +129,12 @@ suite =
                             "  New Task  "
 
                         model =
-                            createModelWithInput input
+                            createModelWithInput input Loading
                     in
                     update AddTodo model
                         |> expectModelAndCmd
                             { model | newTodoInput = "" }
-                            (Ports.addTodo "New Task")
+                            (TodoApi.addTodo "New Task")
             ]
         , describe "Todo Modifications"
             [ describe "delete operations"
@@ -138,12 +142,12 @@ suite =
                     \_ ->
                         update (DeleteTodo 1) initialModel
                             |> Tuple.second
-                            |> expectCmd (Ports.deleteTodo 1)
+                            |> expectCmd (TodoApi.deleteTodo 1)
                 , test "sends delete command for non-existent id" <|
                     \_ ->
                         update (DeleteTodo 999) initialModel
                             |> Tuple.second
-                            |> expectCmd (Ports.deleteTodo 999)
+                            |> expectCmd (TodoApi.deleteTodo 999)
                 ]
             , describe "update operations"
                 [ test "sends update command for existing todo" <|
@@ -154,7 +158,7 @@ suite =
                         in
                         update (UpdateTodo todo) initialModel
                             |> Tuple.second
-                            |> expectCmd (Ports.updateTodo todo)
+                            |> expectCmd (TodoApi.updateTodo todo)
                 , test "sends update command for non-existent todo" <|
                     \_ ->
                         let
@@ -163,7 +167,7 @@ suite =
                         in
                         update (UpdateTodo todo) initialModel
                             |> Tuple.second
-                            |> expectCmd (Ports.updateTodo todo)
+                            |> expectCmd (TodoApi.updateTodo todo)
                 ]
             ]
         , describe "Port Event Handling"
@@ -180,7 +184,7 @@ suite =
                         test description <|
                             \_ ->
                                 update msg initialModel
-                                    |> expectModelAndCmd initialModel (Ports.getTodos ())
+                                    |> expectModelAndCmd initialModel (TodoApi.getTodos ())
                     )
                     portEventCases
              , describe "non-port commands return Cmd.none" <|

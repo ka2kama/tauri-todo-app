@@ -1,13 +1,13 @@
 module Pages.Todo_ exposing (Model, Msg(..), init, subscriptions, update, view)
 
-import Domain.Todo as Todo exposing (Todo)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Global
-import Ports.Todo as TodoPort
+import Lib.Todo.Api.TodoApi as TodoApi
+import Lib.Todo.Domain.Todo as Todo exposing (Todo)
 import Styles exposing (defaultTheme)
 
 
@@ -24,17 +24,17 @@ init =
       , newTodoInput = ""
       , loadingState = Global.Loading
       }
-    , TodoPort.getTodos ()
+    , TodoApi.getTodos ()
     )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ TodoPort.todosLoaded LoadTodos
-        , TodoPort.todoAdded TodoAdded
-        , TodoPort.todoDeleted TodoDeleted
-        , TodoPort.todoUpdated TodoUpdated
+        [ TodoApi.todosLoaded LoadTodos
+        , TodoApi.todoAdded TodoAdded
+        , TodoApi.todoDeleted TodoDeleted
+        , TodoApi.todoUpdated TodoUpdated
         ]
 
 
@@ -71,17 +71,17 @@ update msg model =
                     | newTodoInput = ""
                     , loadingState = Global.Loading
                   }
-                , TodoPort.addTodo (String.trim model.newTodoInput)
+                , TodoApi.addTodo (String.trim model.newTodoInput)
                 )
 
         DeleteTodo id ->
             ( { model | loadingState = Global.Loading }
-            , TodoPort.deleteTodo id
+            , TodoApi.deleteTodo id
             )
 
         UpdateTodo todo ->
             ( { model | loadingState = Global.Loading }
-            , TodoPort.updateTodo todo
+            , TodoApi.updateTodo todo
             )
 
         SetNewTodoInput input ->
@@ -92,7 +92,7 @@ update msg model =
         TodoAdded success ->
             if success then
                 ( model
-                , TodoPort.getTodos ()
+                , TodoApi.getTodos ()
                 )
 
             else
@@ -105,7 +105,7 @@ update msg model =
         TodoDeleted success ->
             if success then
                 ( model
-                , TodoPort.getTodos ()
+                , TodoApi.getTodos ()
                 )
 
             else
@@ -118,7 +118,7 @@ update msg model =
         TodoUpdated success ->
             if success then
                 ( model
-                , TodoPort.getTodos ()
+                , TodoApi.getTodos ()
                 )
 
             else

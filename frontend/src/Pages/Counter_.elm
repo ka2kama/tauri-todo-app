@@ -1,7 +1,7 @@
 module Pages.Counter_ exposing (Model, Msg(..), init, subscriptions, update, view)
 
 import Element exposing (..)
-import Ports
+import Ports.Counter as Ports
 import Styles exposing (defaultTheme)
 
 

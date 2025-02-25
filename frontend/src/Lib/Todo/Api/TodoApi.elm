@@ -1,4 +1,4 @@
-port module Ports.Todo exposing
+port module Lib.Todo.Api.TodoApi exposing
     ( addTodo
     , deleteTodo
     , getTodos
@@ -9,7 +9,7 @@ port module Ports.Todo exposing
     , updateTodo
     )
 
-import Domain.Todo exposing (Todo)
+import Lib.Todo.Domain.Todo exposing (Todo)
 
 
 port getTodos : () -> Cmd msg

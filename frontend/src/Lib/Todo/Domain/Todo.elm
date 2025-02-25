@@ -1,4 +1,4 @@
-module Domain.Todo exposing
+module Lib.Todo.Domain.Todo exposing
     ( Todo
     , TodoId
     , create
