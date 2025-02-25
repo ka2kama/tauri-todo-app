@@ -1,10 +1,10 @@
-module SharedTest exposing (..)
+module GlobalTest exposing (..)
 
 import Browser
 import Expect
 import Json.Encode as Encode
 import Router exposing (Page(..), Route)
-import Shared exposing (Msg(..))
+import Global exposing (Msg(..))
 import Test exposing (..)
 import Url
 
@@ -75,7 +75,7 @@ testUpdate msg model =
 
 suite : Test
 suite =
-    describe "Shared"
+    describe "Global"
         [ describe "Initial State"
             [ test "starts with home route by default" <|
                 \_ ->

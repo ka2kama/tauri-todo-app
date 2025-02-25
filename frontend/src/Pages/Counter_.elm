@@ -1,6 +1,5 @@
 module Pages.Counter_ exposing (Model, Msg(..), init, subscriptions, update, view)
 
-import Browser.Navigation as Nav
 import Element exposing (..)
 import Ports
 import Styles exposing (defaultTheme)
@@ -20,8 +19,8 @@ type Msg
     | LoadedCounter Int
 
 
-init : Nav.Key -> ( Model, Cmd Msg )
-init _ =
+init : ( Model, Cmd Msg )
+init =
     ( { counter = 0
       , saved = False
       }

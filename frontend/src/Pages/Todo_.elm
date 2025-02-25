@@ -1,6 +1,5 @@
 module Pages.Todo_ exposing (Model, Msg(..), Todo, init, subscriptions, update, view)
 
-import Browser.Navigation exposing (Key)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -23,8 +22,8 @@ type alias Model =
     }
 
 
-init : Key -> ( Model, Cmd Msg )
-init _ =
+init : ( Model, Cmd Msg )
+init =
     ( { todos = []
       , newTodoInput = ""
       }

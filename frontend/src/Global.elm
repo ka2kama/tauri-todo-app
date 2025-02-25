@@ -1,4 +1,4 @@
-module Shared exposing
+module Global exposing
     ( Flags
     , Model
     , Msg(..)
