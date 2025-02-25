@@ -2,11 +2,12 @@ module GlobalTest exposing (..)
 
 import Browser
 import Expect
-import Json.Encode as Encode
-import Router exposing (Page(..), Route)
 import Global exposing (Msg(..))
+import Json.Encode as Encode
+import Router exposing (Page(..))
 import Test exposing (..)
 import Url
+
 
 
 -- TYPES
@@ -15,9 +16,9 @@ import Url
 {-| A simplified model for testing that omits the navigation key
 -}
 type alias TestModel =
-    { url : Url.Url
-    , route : Route
+    { page : Page
     }
+
 
 
 -- HELPERS
@@ -31,8 +32,7 @@ createTestModel path =
         url =
             createTestUrl path
     in
-    { url = url
-    , route = Router.fromUrl url
+    { page = Router.fromUrl url
     }
 
 
@@ -52,8 +52,7 @@ testUpdate msg model =
     case msg of
         UrlChanged url ->
             ( { model
-                | url = url
-                , route = Router.fromUrl url
+                | page = Router.fromUrl url
               }
             , Cmd.none
             )
@@ -70,6 +69,7 @@ testUpdate msg model =
             ( model, Cmd.none )
 
 
+
 -- TESTS
 
 
@@ -80,7 +80,6 @@ suite =
             [ test "starts with home route by default" <|
                 \_ ->
                     createTestModel "/"
-                        |> .route
                         |> .page
                         |> Expect.equal HomePage
             ]
@@ -92,7 +91,7 @@ suite =
                             createTestModel "/"
                                 |> testUpdate (UrlChanged (createTestUrl "/about"))
                     in
-                    updatedModel.route.page
+                    updatedModel.page
                         |> Expect.equal AboutPage
             ]
         , describe "Flags Handling"

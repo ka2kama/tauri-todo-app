@@ -1,7 +1,7 @@
 module Pages.Counter_ exposing (Model, Msg(..), init, subscriptions, update, view)
 
 import Element exposing (..)
-import Ports.Counter as Ports
+import Lib.Counter.Api.CounterApi as CounterApi
 import Styles exposing (defaultTheme)
 
 
@@ -16,7 +16,7 @@ type Msg
     | Decrement
     | SaveCounter
     | CounterSaved Bool
-    | LoadedCounter Int
+    | CounterLoaded Int
 
 
 init : ( Model, Cmd Msg )
@@ -43,7 +43,7 @@ update msg model =
 
         SaveCounter ->
             ( { model | saved = False }
-            , Ports.saveCounter model.counter
+            , CounterApi.saveCounter model.counter
             )
 
         CounterSaved saved ->
@@ -51,7 +51,7 @@ update msg model =
             , Cmd.none
             )
 
-        LoadedCounter value ->
+        CounterLoaded value ->
             ( { model | counter = value, saved = True }
             , Cmd.none
             )
@@ -60,8 +60,8 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ Ports.counterSaved CounterSaved
-        , Ports.loadedCounter LoadedCounter
+        [ CounterApi.counterSaved CounterSaved
+        , CounterApi.counterLoaded CounterLoaded
         ]
 
 

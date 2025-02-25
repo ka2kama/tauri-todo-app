@@ -1,7 +1,7 @@
 module RouterTest exposing (..)
 
 import Expect
-import Router exposing (Page(..), fromUrl, toString)
+import Router exposing (Page(..), fromUrl, toPath)
 import Test exposing (..)
 import Url
 
@@ -32,7 +32,6 @@ suite =
                         \_ ->
                             createTestUrl path
                                 |> fromUrl
-                                |> .page
                                 |> Expect.equal expectedPage
                 )
                 testCases
@@ -40,17 +39,17 @@ suite =
         , describe "Route to String"
             (let
                 testCases =
-                    [ ( { page = HomePage }, "/", "home route" )
-                    , ( { page = AboutPage }, "/about", "about route" )
-                    , ( { page = TodoPage }, "/todo", "todo route" )
-                    , ( { page = CounterPage }, "/counter", "counter route" )
+                    [ ( HomePage, "/", "home route" )
+                    , ( AboutPage, "/about", "about route" )
+                    , ( TodoPage, "/todo", "todo route" )
+                    , ( CounterPage, "/counter", "counter route" )
                     ]
              in
              List.map
                 (\( route, expectedPath, description ) ->
                     test ("converts " ++ description ++ " correctly") <|
                         \_ ->
-                            toString route
+                            toPath route
                                 |> Expect.equal expectedPath
                 )
                 testCases

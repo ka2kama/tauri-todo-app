@@ -1,11 +1,13 @@
 module Pages.TodoTest exposing (..)
 
 import Expect
-import Pages.Todo_ exposing (Model, Msg(..), update)
-import Lib.Todo.Domain.Todo exposing (Todo)
-import Lib.Todo.Api.TodoApi as TodoApi
-import Test exposing (..)
 import Global exposing (LoadingState(..))
+import Lib.Todo.Api.TodoApi as TodoApi
+import Lib.Todo.Domain.Todo exposing (Todo)
+import Pages.Todo_ exposing (Model, Msg(..), update)
+import Test exposing (..)
+
+
 
 -- HELPERS
 
@@ -32,9 +34,11 @@ createModelWithTodos todos =
 
 
 createModelWithInput : String -> Global.LoadingState -> Model
-createModelWithInput input loadingState=
-    { initialModel | newTodoInput = input
-    ,loadingState =  loadingState}
+createModelWithInput input loadingState =
+    { initialModel
+        | newTodoInput = input
+        , loadingState = loadingState
+    }
 
 
 expectCmd : Cmd Msg -> Cmd Msg -> Expect.Expectation
@@ -49,6 +53,7 @@ expectModelAndCmd expectedModel expectedCmd ( actualModel, actualCmd ) =
         , \_ -> actualCmd |> expectCmd expectedCmd
         ]
         ()
+
 
 
 -- TESTS

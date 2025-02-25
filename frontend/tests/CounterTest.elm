@@ -7,10 +7,10 @@ import Test exposing (..)
 import Test.Html.Event as Event
 import Test.Html.Query as Query
 import Test.Html.Selector as Selector
+import Router exposing (Page(..))
 
 
 -- HELPERS
-
 
 initialModel : Model
 initialModel =
@@ -31,6 +31,7 @@ clickButton label query =
     query
         |> Query.find [ Selector.class "cptr", Selector.containing [ Selector.text label ] ]
         |> Event.simulate Event.click
+
 
 
 -- TESTS

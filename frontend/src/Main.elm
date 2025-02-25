@@ -8,6 +8,7 @@ import Pages.About_
 import Pages.Counter_
 import Pages.Home_
 import Pages.Todo_
+import Request
 import Router
 import Styles exposing (defaultTheme)
 import Url exposing (Url)
@@ -19,14 +20,22 @@ type alias Model =
     }
 
 
+
+-- A wrapper of each page models
+
+
 type PageModel
     = TodoModel Pages.Todo_.Model
     | CounterModel Pages.Counter_.Model
     | StaticPage
 
 
+
+-- A wrapper of each page messages
+
+
 type Msg
-    = SharedMsg Global.Msg
+    = GlobalMsg Global.Msg
     | TodoMsg Pages.Todo_.Msg
     | CounterMsg Pages.Counter_.Msg
 
@@ -38,24 +47,24 @@ main =
         , view = view
         , update = update
         , subscriptions = subscriptions
-        , onUrlRequest = SharedMsg << Global.LinkClicked
-        , onUrlChange = SharedMsg << Global.UrlChanged
+        , onUrlRequest = GlobalMsg << Global.LinkClicked
+        , onUrlChange = GlobalMsg << Global.UrlChanged
         }
 
 
 init : Global.Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url key =
+init _ url key =
     let
-        ( globalModel, sharedCmd ) =
-            Global.init flags url key
+        ( globalModel, globalCmd ) =
+            Global.init (Request.create () url key)
 
         ( pageModel, pageCmd ) =
-            initPageModel globalModel.route.page
+            initPageModel globalModel.page
     in
     ( { global = globalModel
       , pageModel = pageModel
       }
-    , Cmd.batch [ Cmd.map SharedMsg sharedCmd, pageCmd ]
+    , Cmd.batch [ Cmd.map GlobalMsg globalCmd, pageCmd ]
     )
 
 
@@ -64,17 +73,17 @@ initPageModel page =
     case page of
         Router.TodoPage ->
             let
-                ( model, cmd ) =
+                ( initialModel, initialCmd ) =
                     Pages.Todo_.init
             in
-            ( TodoModel model, Cmd.map TodoMsg cmd )
+            ( TodoModel initialModel, Cmd.map TodoMsg initialCmd )
 
         Router.CounterPage ->
             let
-                ( model, cmd ) =
+                ( initialModel, initialCmd ) =
                     Pages.Counter_.init
             in
-            ( CounterModel model, Cmd.map CounterMsg cmd )
+            ( CounterModel initialModel, Cmd.map CounterMsg initialCmd )
 
         _ ->
             ( StaticPage, Cmd.none )
@@ -82,56 +91,49 @@ initPageModel page =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        SharedMsg sharedMsg ->
+    case ( msg, model.pageModel ) of
+        ( GlobalMsg globalMsg, _ ) ->
             let
-                ( newShared, sharedCmd ) =
-                    Global.update sharedMsg model.global
+                ( newGlobal, updatedGlobalCmd ) =
+                    Global.update globalMsg model.global
 
                 ( pageModel, pageCmd ) =
-                    if newShared.route.page /= model.global.route.page then
-                        initPageModel newShared.route.page
+                    if newGlobal.page /= model.global.page then
+                        initPageModel newGlobal.page
 
                     else
                         ( model.pageModel, Cmd.none )
             in
-            ( { model | global = newShared, pageModel = pageModel }
-            , Cmd.batch [ Cmd.map SharedMsg sharedCmd, pageCmd ]
+            ( { model | global = newGlobal, pageModel = pageModel }
+            , Cmd.batch [ Cmd.map GlobalMsg updatedGlobalCmd, pageCmd ]
             )
 
-        TodoMsg todoMsg ->
-            case model.pageModel of
-                TodoModel todoModel ->
-                    let
-                        ( newTodoModel, todoCmd ) =
-                            Pages.Todo_.update todoMsg todoModel
-                    in
-                    ( { model | pageModel = TodoModel newTodoModel }
-                    , Cmd.map TodoMsg todoCmd
-                    )
+        ( TodoMsg pageMsg, TodoModel pageModel ) ->
+            let
+                ( newTodoModel, todoCmd ) =
+                    Pages.Todo_.update pageMsg pageModel
+            in
+            ( { model | pageModel = TodoModel newTodoModel }
+            , Cmd.map TodoMsg todoCmd
+            )
 
-                _ ->
-                    ( model, Cmd.none )
+        ( CounterMsg pageMsg, CounterModel pageModel ) ->
+            let
+                ( newCounterModel, counterCmd ) =
+                    Pages.Counter_.update pageMsg pageModel
+            in
+            ( { model | pageModel = CounterModel newCounterModel }
+            , Cmd.map CounterMsg counterCmd
+            )
 
-        CounterMsg counterMsg ->
-            case model.pageModel of
-                CounterModel counterModel ->
-                    let
-                        ( newCounterModel, counterCmd ) =
-                            Pages.Counter_.update counterMsg counterModel
-                    in
-                    ( { model | pageModel = CounterModel newCounterModel }
-                    , Cmd.map CounterMsg counterCmd
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
+        _ ->
+            ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Sub.map SharedMsg (Global.subscriptions model.global)
+        [ Sub.map GlobalMsg (Global.subscriptions model.global)
         , case model.pageModel of
             TodoModel todoModel ->
                 Sub.map TodoMsg (Pages.Todo_.subscriptions todoModel)
@@ -151,38 +153,31 @@ view model =
         [ Element.layout [] <|
             column [ width fill, height fill ]
                 [ Styles.navBar defaultTheme
-                    [ Styles.navLink defaultTheme { url = "/", label = "Home" }
-                    , Styles.navLink defaultTheme { url = "/about", label = "About" }
-                    , Styles.navLink defaultTheme { url = "/todo", label = "Todo" }
-                    , Styles.navLink defaultTheme { url = "/counter", label = "Counter" }
+                    [ Styles.navLink defaultTheme { url = Router.toPath Router.HomePage, label = "Home" }
+                    , Styles.navLink defaultTheme { url = Router.toPath Router.AboutPage, label = "About" }
+                    , Styles.navLink defaultTheme { url = Router.toPath Router.TodoPage, label = "Todo" }
+                    , Styles.navLink defaultTheme { url = Router.toPath Router.CounterPage, label = "Counter" }
                     ]
                 , el [ width fill, height fill ] <|
-                    case model.global.route.page of
-                        Router.HomePage ->
-                            Element.map (\_ -> SharedMsg Global.NoOp) <|
+                    case ( model.global.page, model.pageModel ) of
+                        ( Router.HomePage, _ ) ->
+                            Element.map (\_ -> GlobalMsg Global.NoOp) <|
                                 Pages.Home_.view {}
 
-                        Router.AboutPage ->
-                            Element.map (\_ -> SharedMsg Global.NoOp) <|
+                        ( Router.AboutPage, _ ) ->
+                            Element.map (\_ -> GlobalMsg Global.NoOp) <|
                                 Pages.About_.view {}
 
-                        Router.TodoPage ->
-                            case model.pageModel of
-                                TodoModel todoModel ->
-                                    Element.map TodoMsg <|
-                                        Pages.Todo_.view todoModel
+                        ( Router.TodoPage, TodoModel todoModel ) ->
+                            Element.map TodoMsg <|
+                                Pages.Todo_.view todoModel
 
-                                _ ->
-                                    Element.none
+                        ( Router.CounterPage, CounterModel counterModel ) ->
+                            Element.map CounterMsg <|
+                                Pages.Counter_.view counterModel
 
-                        Router.CounterPage ->
-                            case model.pageModel of
-                                CounterModel counterModel ->
-                                    Element.map CounterMsg <|
-                                        Pages.Counter_.view counterModel
-
-                                _ ->
-                                    Element.none
+                        _ ->
+                            Element.none
                 ]
         ]
     }

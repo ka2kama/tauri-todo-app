@@ -1,4 +1,4 @@
-module Pages.About_ exposing (Model, Msg, view)
+module Pages.About_ exposing (Model, Msg(..), view)
 
 import Element exposing (..)
 import Styles exposing (defaultTheme)

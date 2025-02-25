@@ -3,7 +3,7 @@ module Router exposing
     , Route
     , fromUrl
     , parser
-    , toString
+    , toPath
     )
 
 import Url exposing (Url)
@@ -22,25 +22,25 @@ type alias Route =
     }
 
 
-parser : Parser (Route -> a) a
+parser : Parser (Page -> a) a
 parser =
     Parser.oneOf
-        [ Parser.map { page = HomePage } Parser.top
-        , Parser.map { page = AboutPage } (Parser.s "about")
-        , Parser.map { page = TodoPage } (Parser.s "todo")
-        , Parser.map { page = CounterPage } (Parser.s "counter")
+        [ Parser.map HomePage Parser.top
+        , Parser.map AboutPage (Parser.s "about")
+        , Parser.map TodoPage (Parser.s "todo")
+        , Parser.map CounterPage (Parser.s "counter")
         ]
 
 
-fromUrl : Url -> Route
+fromUrl : Url -> Page
 fromUrl url =
     Parser.parse parser url
-        |> Maybe.withDefault { page = HomePage }
+        |> Maybe.withDefault HomePage
 
 
-toString : Route -> String
-toString route =
-    case route.page of
+toPath : Page -> String
+toPath page =
+    case page of
         HomePage ->
             "/"
 
