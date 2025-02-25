@@ -3,12 +3,12 @@ module Main exposing (main)
 import Browser
 import Browser.Navigation as Nav
 import Element exposing (..)
+import Global
 import Pages.About_
 import Pages.Counter_
 import Pages.Home_
 import Pages.Todo_
 import Router
-import Global
 import Styles exposing (defaultTheme)
 import Url exposing (Url)
 
@@ -60,7 +60,7 @@ init flags url key =
 
 
 initPageModel : Router.Page -> ( PageModel, Cmd Msg )
-initPageModel page  =
+initPageModel page =
     case page of
         Router.TodoPage ->
             let
@@ -131,7 +131,7 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-            [ Sub.map SharedMsg (Global.subscriptions model.global)
+        [ Sub.map SharedMsg (Global.subscriptions model.global)
         , case model.pageModel of
             TodoModel todoModel ->
                 Sub.map TodoMsg (Pages.Todo_.subscriptions todoModel)

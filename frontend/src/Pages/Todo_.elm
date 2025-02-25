@@ -1,24 +1,20 @@
-module Pages.Todo_ exposing (Model, Msg(..), Todo, init, subscriptions, update, view)
+module Pages.Todo_ exposing (Model, Msg(..), init, subscriptions, update, view)
 
+import Domain.Todo as Todo exposing (Todo)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
-import Ports
+import Global
+import Ports.Todo as TodoPort
 import Styles exposing (defaultTheme)
-
-
-type alias Todo =
-    { id : Int
-    , title : String
-    , completed : Bool
-    }
 
 
 type alias Model =
     { todos : List Todo
     , newTodoInput : String
+    , loadingState : Global.LoadingState
     }
 
 
@@ -26,30 +22,32 @@ init : ( Model, Cmd Msg )
 init =
     ( { todos = []
       , newTodoInput = ""
+      , loadingState = Global.Loading
       }
-    , Ports.getTodos ()
+    , TodoPort.getTodos ()
     )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ Ports.todosLoaded LoadTodos
-        , Ports.todoAdded TodoAdded
-        , Ports.todoDeleted TodoDeleted
-        , Ports.todoUpdated TodoUpdated
+        [ TodoPort.todosLoaded LoadTodos
+        , TodoPort.todoAdded TodoAdded
+        , TodoPort.todoDeleted TodoDeleted
+        , TodoPort.todoUpdated TodoUpdated
         ]
 
 
 type Msg
     = LoadTodos (List Todo)
     | AddTodo
-    | DeleteTodo Int
+    | DeleteTodo Todo.TodoId
     | UpdateTodo Todo
     | SetNewTodoInput String
     | TodoAdded Bool
     | TodoDeleted Bool
     | TodoUpdated Bool
+    | SetLoadingState Global.LoadingState
     | NoOp
 
 
@@ -57,7 +55,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         LoadTodos todos ->
-            ( { model | todos = todos }
+            ( { model
+                | todos = todos
+                , loadingState = Global.NotLoading
+              }
             , Cmd.none
             )
 
@@ -66,18 +67,21 @@ update msg model =
                 ( model, Cmd.none )
 
             else
-                ( { model | newTodoInput = "" }
-                , Ports.addTodo (String.trim model.newTodoInput)
+                ( { model
+                    | newTodoInput = ""
+                    , loadingState = Global.Loading
+                  }
+                , TodoPort.addTodo (String.trim model.newTodoInput)
                 )
 
         DeleteTodo id ->
-            ( model
-            , Ports.deleteTodo id
+            ( { model | loadingState = Global.Loading }
+            , TodoPort.deleteTodo id
             )
 
         UpdateTodo todo ->
-            ( model
-            , Ports.updateTodo todo
+            ( { model | loadingState = Global.Loading }
+            , TodoPort.updateTodo todo
             )
 
         SetNewTodoInput input ->
@@ -88,29 +92,46 @@ update msg model =
         TodoAdded success ->
             if success then
                 ( model
-                , Ports.getTodos ()
+                , TodoPort.getTodos ()
                 )
 
             else
-                ( model, Cmd.none )
+                ( { model
+                    | loadingState = Global.LoadingFailed (Global.NetworkError "Failed to add todo")
+                  }
+                , Cmd.none
+                )
 
         TodoDeleted success ->
             if success then
                 ( model
-                , Ports.getTodos ()
+                , TodoPort.getTodos ()
                 )
 
             else
-                ( model, Cmd.none )
+                ( { model
+                    | loadingState = Global.LoadingFailed (Global.NetworkError "Failed to delete todo")
+                  }
+                , Cmd.none
+                )
 
         TodoUpdated success ->
             if success then
                 ( model
-                , Ports.getTodos ()
+                , TodoPort.getTodos ()
                 )
 
             else
-                ( model, Cmd.none )
+                ( { model
+                    | loadingState = Global.LoadingFailed (Global.NetworkError "Failed to update todo")
+                  }
+                , Cmd.none
+                )
+
+        SetLoadingState state ->
+            ( { model | loadingState = state }
+            , Cmd.none
+            )
 
         NoOp ->
             ( model, Cmd.none )
@@ -121,6 +142,14 @@ view model =
     let
         activeTodos =
             List.length (List.filter (not << .completed) model.todos)
+
+        errorMessage =
+            case model.loadingState of
+                Global.LoadingFailed (Global.NetworkError msg) ->
+                    Just msg
+
+                _ ->
+                    Nothing
     in
     Styles.containerCard defaultTheme [ spacing 25 ] <|
         column [ width fill, spacing 25 ]
@@ -132,6 +161,18 @@ view model =
                 , paddingXY 0 5
                 ]
                 (text (String.fromInt activeTodos ++ " tasks remaining"))
+            , case errorMessage of
+                Just msg ->
+                    el
+                        [ centerX
+                        , Font.color defaultTheme.colors.danger
+                        , Font.size 14
+                        , paddingXY 0 5
+                        ]
+                        (text msg)
+
+                Nothing ->
+                    none
             , row
                 [ width fill
                 , spacing 15
@@ -170,5 +211,11 @@ viewTodoItem todo =
     Styles.todoItem defaultTheme
         { todo = todo
         , onDelete = DeleteTodo todo.id
-        , onToggle = \isChecked -> UpdateTodo { todo | completed = isChecked }
+        , onToggle =
+            \isChecked ->
+                if isChecked then
+                    UpdateTodo (Todo.markAsCompleted todo)
+
+                else
+                    UpdateTodo (Todo.markAsUncompleted todo)
         }
