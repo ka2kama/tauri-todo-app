@@ -5,16 +5,16 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
-import Global
 import Lib.Todo.Api.TodoApi as TodoApi
 import Lib.Todo.Domain.Todo as Todo exposing (Todo)
+import Shared
 import Styles exposing (defaultTheme)
 
 
 type alias Model =
     { todos : List Todo
     , newTodoInput : String
-    , loadingState : Global.LoadingState
+    , loadingState : Shared.LoadingState
     }
 
 
@@ -22,7 +22,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { todos = []
       , newTodoInput = ""
-      , loadingState = Global.Loading
+      , loadingState = Shared.Loading
       }
     , TodoApi.getTodos ()
     )
@@ -47,7 +47,7 @@ type Msg
     | TodoAdded Bool
     | TodoDeleted Bool
     | TodoUpdated Bool
-    | SetLoadingState Global.LoadingState
+    | SetLoadingState Shared.LoadingState
     | NoOp
 
 
@@ -57,7 +57,7 @@ update msg model =
         LoadTodos todos ->
             ( { model
                 | todos = todos
-                , loadingState = Global.NotLoading
+                , loadingState = Shared.NotLoading
               }
             , Cmd.none
             )
@@ -69,18 +69,18 @@ update msg model =
             else
                 ( { model
                     | newTodoInput = ""
-                    , loadingState = Global.Loading
+                    , loadingState = Shared.Loading
                   }
                 , TodoApi.addTodo (String.trim model.newTodoInput)
                 )
 
         DeleteTodo id ->
-            ( { model | loadingState = Global.Loading }
+            ( { model | loadingState = Shared.Loading }
             , TodoApi.deleteTodo id
             )
 
         UpdateTodo todo ->
-            ( { model | loadingState = Global.Loading }
+            ( { model | loadingState = Shared.Loading }
             , TodoApi.updateTodo todo
             )
 
@@ -97,7 +97,7 @@ update msg model =
 
             else
                 ( { model
-                    | loadingState = Global.LoadingFailed (Global.NetworkError "Failed to add todo")
+                    | loadingState = Shared.LoadingFailed (Shared.NetworkError "Failed to add todo")
                   }
                 , Cmd.none
                 )
@@ -110,7 +110,7 @@ update msg model =
 
             else
                 ( { model
-                    | loadingState = Global.LoadingFailed (Global.NetworkError "Failed to delete todo")
+                    | loadingState = Shared.LoadingFailed (Shared.NetworkError "Failed to delete todo")
                   }
                 , Cmd.none
                 )
@@ -123,7 +123,7 @@ update msg model =
 
             else
                 ( { model
-                    | loadingState = Global.LoadingFailed (Global.NetworkError "Failed to update todo")
+                    | loadingState = Shared.LoadingFailed (Shared.NetworkError "Failed to update todo")
                   }
                 , Cmd.none
                 )
@@ -145,7 +145,7 @@ view model =
 
         errorMessage =
             case model.loadingState of
-                Global.LoadingFailed (Global.NetworkError msg) ->
+                Shared.LoadingFailed (Shared.NetworkError msg) ->
                     Just msg
 
                 _ ->

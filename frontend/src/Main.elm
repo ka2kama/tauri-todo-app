@@ -3,19 +3,19 @@ module Main exposing (main)
 import Browser
 import Browser.Navigation as Nav
 import Element exposing (..)
-import Global
 import Pages.About_
 import Pages.Counter_
 import Pages.Home_
 import Pages.Todo_
 import Request
 import Router
+import Shared
 import Styles exposing (defaultTheme)
 import Url exposing (Url)
 
 
 type alias Model =
-    { global : Global.Model
+    { shared : Shared.Model
     , pageModel : PageModel
     }
 
@@ -35,36 +35,36 @@ type PageModel
 
 
 type Msg
-    = GlobalMsg Global.Msg
+    = SharedMsg Shared.Msg
     | TodoMsg Pages.Todo_.Msg
     | CounterMsg Pages.Counter_.Msg
 
 
-main : Program Global.Flags Model Msg
+main : Program Shared.Flags Model Msg
 main =
     Browser.application
         { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions
-        , onUrlRequest = GlobalMsg << Global.LinkClicked
-        , onUrlChange = GlobalMsg << Global.UrlChanged
+        , onUrlRequest = SharedMsg << Shared.LinkClicked
+        , onUrlChange = SharedMsg << Shared.UrlChanged
         }
 
 
-init : Global.Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init : Shared.Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
     let
-        ( globalModel, globalCmd ) =
-            Global.init (Request.create () url key)
+        ( sharedModel, globalCmd ) =
+            Shared.init (Request.create () url key)
 
         ( pageModel, pageCmd ) =
-            initPageModel globalModel.page
+            initPageModel sharedModel.page
     in
-    ( { global = globalModel
+    ( { shared = sharedModel
       , pageModel = pageModel
       }
-    , Cmd.batch [ Cmd.map GlobalMsg globalCmd, pageCmd ]
+    , Cmd.batch [ Cmd.map SharedMsg globalCmd, pageCmd ]
     )
 
 
@@ -92,20 +92,20 @@ initPageModel page =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.pageModel ) of
-        ( GlobalMsg globalMsg, _ ) ->
+        ( SharedMsg globalMsg, _ ) ->
             let
-                ( newGlobal, updatedGlobalCmd ) =
-                    Global.update globalMsg model.global
+                ( newGlobal, updatedSharedCmd ) =
+                    Shared.update globalMsg model.shared
 
                 ( pageModel, pageCmd ) =
-                    if newGlobal.page /= model.global.page then
+                    if newGlobal.page /= model.shared.page then
                         initPageModel newGlobal.page
 
                     else
                         ( model.pageModel, Cmd.none )
             in
-            ( { model | global = newGlobal, pageModel = pageModel }
-            , Cmd.batch [ Cmd.map GlobalMsg updatedGlobalCmd, pageCmd ]
+            ( { model | shared = newGlobal, pageModel = pageModel }
+            , Cmd.batch [ Cmd.map SharedMsg updatedSharedCmd, pageCmd ]
             )
 
         ( TodoMsg pageMsg, TodoModel pageModel ) ->
@@ -133,7 +133,7 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Sub.map GlobalMsg (Global.subscriptions model.global)
+        [ Sub.map SharedMsg (Shared.subscriptions model.shared)
         , case model.pageModel of
             TodoModel todoModel ->
                 Sub.map TodoMsg (Pages.Todo_.subscriptions todoModel)
@@ -159,13 +159,13 @@ view model =
                     , Styles.navLink defaultTheme { url = Router.toPath Router.CounterPage, label = "Counter" }
                     ]
                 , el [ width fill, height fill ] <|
-                    case ( model.global.page, model.pageModel ) of
+                    case ( model.shared.page, model.pageModel ) of
                         ( Router.HomePage, _ ) ->
-                            Element.map (\_ -> GlobalMsg Global.NoOp) <|
+                            Element.map (\_ -> SharedMsg Shared.NoOp) <|
                                 Pages.Home_.view {}
 
                         ( Router.AboutPage, _ ) ->
-                            Element.map (\_ -> GlobalMsg Global.NoOp) <|
+                            Element.map (\_ -> SharedMsg Shared.NoOp) <|
                                 Pages.About_.view {}
 
                         ( Router.TodoPage, TodoModel todoModel ) ->

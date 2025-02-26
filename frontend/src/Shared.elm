@@ -1,4 +1,4 @@
-module Global exposing
+module Shared exposing
     ( Error(..)
     , Flags
     , LoadingState(..)

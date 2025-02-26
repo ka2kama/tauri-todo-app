@@ -1,8 +1,8 @@
-module GlobalTest exposing (..)
+module SharedTest exposing (..)
 
 import Browser
 import Expect
-import Global exposing (Msg(..))
+import Shared exposing (Msg(..))
 import Json.Encode as Encode
 import Router exposing (Page(..))
 import Test exposing (..)

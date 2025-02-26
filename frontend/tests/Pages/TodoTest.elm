@@ -1,7 +1,7 @@
 module Pages.TodoTest exposing (..)
 
 import Expect
-import Global exposing (LoadingState(..))
+import Shared exposing (LoadingState(..))
 import Lib.Todo.Api.TodoApi as TodoApi
 import Lib.Todo.Domain.Todo exposing (Todo)
 import Pages.Todo_ exposing (Model, Msg(..), update)
@@ -33,7 +33,7 @@ createModelWithTodos todos =
     { initialModel | todos = todos }
 
 
-createModelWithInput : String -> Global.LoadingState -> Model
+createModelWithInput : String -> Shared.LoadingState -> Model
 createModelWithInput input loadingState =
     { initialModel
         | newTodoInput = input
