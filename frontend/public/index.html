@@ -28,7 +28,7 @@
 
         // Send initial counter to Elm if it exists
         if (initialCounter !== null) {
-            app.ports.loadedCounter.send(parseInt(initialCounter, 10));
+            app.ports.counterLoaded.send(parseInt(initialCounter, 10));
         }
 
         // Counter port handlers
