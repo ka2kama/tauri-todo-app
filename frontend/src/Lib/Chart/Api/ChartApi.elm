@@ -1,4 +1,4 @@
-port module Lib.Chart.Api.ChartApi exposing (ChartData, chartDataLoaded, getChartData)
+port module Lib.Chart.Api.ChartApi exposing (ChartData, ChartResponse, chartDataLoaded, getChartData)
 
 
 type alias ChartData =
@@ -7,7 +7,13 @@ type alias ChartData =
     }
 
 
+type alias ChartResponse =
+    { data : Maybe (List ChartData)
+    , error : Maybe String
+    }
+
+
 port getChartData : () -> Cmd msg
 
 
-port chartDataLoaded : (List ChartData -> msg) -> Sub msg
+port chartDataLoaded : (ChartResponse -> msg) -> Sub msg

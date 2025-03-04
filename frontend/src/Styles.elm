@@ -40,6 +40,7 @@ type alias Colors =
     , borderHover : Color
     , danger : Color
     , dangerHover : Color
+    , error : Color
     , checkbox : Color
     , checkboxBorder : Color
     , todoItemBorder : Color
@@ -68,6 +69,7 @@ defaultTheme =
         , borderHover = rgb255 130 180 255
         , danger = rgb255 255 100 100
         , dangerHover = rgba 255 100 100 0.1
+        , error = rgb255 220 50 50
         , checkbox = rgb255 130 180 255
         , checkboxBorder = rgb255 200 200 200
         , todoItemBorder = rgb255 240 240 240
