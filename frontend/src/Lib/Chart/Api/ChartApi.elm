@@ -1,19 +1,19 @@
-port module Lib.Chart.Api.ChartApi exposing (ChartData, ChartResponse, chartDataLoaded, getChartData)
+port module Lib.Chart.Api.ChartApi exposing (StockPrice, StockPriceResponse, stockPricesLoaded, getStockPrices)
 
 
-type alias ChartData =
+type alias StockPrice =
     { label : String
     , value : Float
     }
 
 
-type alias ChartResponse =
-    { data : Maybe (List ChartData)
+type alias StockPriceResponse =
+    { data : Maybe (List StockPrice)
     , error : Maybe String
     }
 
 
-port getChartData : () -> Cmd msg
+port getStockPrices : () -> Cmd msg
 
 
-port chartDataLoaded : (ChartResponse -> msg) -> Sub msg
+port stockPricesLoaded : (StockPriceResponse -> msg) -> Sub msg

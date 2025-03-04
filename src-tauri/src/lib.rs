@@ -3,7 +3,7 @@ mod db;
 mod models;
 
 use commands::{
-   chart::get_chart_data,
+   chart::get_stock_prices,
    todo::{add_todo, delete_todo, get_todos, update_todo},
 };
 use tauri::Manager;
@@ -33,7 +33,7 @@ pub fn run() {
          add_todo,
          update_todo,
          delete_todo,
-         get_chart_data
+         get_stock_prices
       ])
       .run(tauri::generate_context!())
       .expect("error while running tauri application");

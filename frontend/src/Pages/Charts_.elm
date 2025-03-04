@@ -7,20 +7,20 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Html.Attributes
-import Lib.Chart.Api.ChartApi as ChartApi exposing (ChartData, ChartResponse)
+import Lib.Chart.Api.ChartApi as StockApi exposing (StockPrice, StockPriceResponse)
 import Styles exposing (Theme, defaultTheme)
 
 
 type alias Model =
-    { data : List ChartData
+    { data : List StockPrice
     , loading : Bool
     , error : Maybe String
     }
 
 
 type Msg
-    = LoadChartData
-    | GotChartData ChartResponse
+    = LoadStockPrices
+    | GotStockPrices StockPriceResponse
 
 
 init : ( Model, Cmd Msg )
@@ -29,22 +29,22 @@ init =
       , loading = True
       , error = Nothing
       }
-    , ChartApi.getChartData ()
+    , StockApi.getStockPrices ()
     )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        LoadChartData ->
+        LoadStockPrices ->
             ( { model | loading = True, error = Nothing }
-            , ChartApi.getChartData ()
+            , StockApi.getStockPrices ()
             )
 
-        GotChartData response ->
+        GotStockPrices response ->
             case response.data of
-                Just chartData ->
-                    ( { model | data = chartData, loading = False, error = Nothing }
+                Just stockPrices ->
+                    ( { model | data = stockPrices, loading = False, error = Nothing }
                     , Cmd.none
                     )
 
@@ -56,7 +56,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    ChartApi.chartDataLoaded GotChartData
+    StockApi.stockPricesLoaded GotStockPrices
 
 
 type alias Point =
@@ -66,7 +66,7 @@ type alias Point =
     }
 
 
-toPoints : List ChartData -> List Point
+toPoints : List StockPrice -> List Point
 toPoints data =
     List.indexedMap
         (\i d ->
@@ -83,8 +83,8 @@ formatPrice price =
     "$" ++ String.fromFloat (toFloat (round (price * 100)) / 100)
 
 
-stockChart : List ChartData -> Element msg
-stockChart data =
+stockPriceChart : List StockPrice -> Element msg
+stockPriceChart data =
     let
         points =
             toPoints data
@@ -170,7 +170,7 @@ errorView theme errorMsg =
             , Font.color theme.colors.white
             , Border.rounded 6
             ]
-            { onPress = Just LoadChartData
+            { onPress = Just LoadStockPrices
             , label = text "Retry"
             }
         ]
@@ -193,5 +193,5 @@ view model =
                     errorView defaultTheme error
 
                 ( False, Nothing ) ->
-                    stockChart model.data
+                    stockPriceChart model.data
             ]
