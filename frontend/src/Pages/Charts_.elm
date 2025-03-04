@@ -4,49 +4,47 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
+import Lib.Chart.Api.ChartApi as ChartApi exposing (ChartData)
 import Styles exposing (Theme, defaultTheme)
-
-
-type alias ChartData =
-    { label : String
-    , value : Float
-    }
 
 
 type alias Model =
     { data : List ChartData
+    , loading : Bool
     }
 
 
 type Msg
-    = NoOp
+    = LoadChartData
+    | GotChartData (List ChartData)
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { data =
-            [ { label = "Jan", value = 65 }
-            , { label = "Feb", value = 45 }
-            , { label = "Mar", value = 80 }
-            , { label = "Apr", value = 30 }
-            , { label = "May", value = 55 }
-            , { label = "Jun", value = 70 }
-            ]
+    ( { data = []
+      , loading = True
       }
-    , Cmd.none
+    , ChartApi.getChartData ()
     )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoOp ->
-            ( model, Cmd.none )
+        LoadChartData ->
+            ( { model | loading = True }
+            , ChartApi.getChartData ()
+            )
+
+        GotChartData data ->
+            ( { model | data = data, loading = False }
+            , Cmd.none
+            )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    ChartApi.chartDataLoaded GotChartData
 
 
 barChart : Theme -> List ChartData -> Element Msg

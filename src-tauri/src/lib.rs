@@ -2,7 +2,10 @@ mod commands;
 mod db;
 mod models;
 
-use commands::todo::{add_todo, delete_todo, get_todos, update_todo};
+use commands::{
+   chart::get_chart_data,
+   todo::{add_todo, delete_todo, get_todos, update_todo},
+};
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -29,7 +32,8 @@ pub fn run() {
          get_todos,
          add_todo,
          update_todo,
-         delete_todo
+         delete_todo,
+         get_chart_data
       ])
       .run(tauri::generate_context!())
       .expect("error while running tauri application");
