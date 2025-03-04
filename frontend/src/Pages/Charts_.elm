@@ -62,6 +62,7 @@ subscriptions _ =
 type alias Point =
     { x : Float
     , y : Float
+    , label : String
     }
 
 
@@ -71,9 +72,15 @@ toPoints data =
         (\i d ->
             { x = toFloat i
             , y = d.value
+            , label = d.label
             }
         )
         data
+
+
+formatPrice : Float -> String
+formatPrice price =
+    "$" ++ String.fromFloat (toFloat (round (price * 100)) / 100)
 
 
 stockChart : List ChartData -> Element msg
@@ -85,28 +92,53 @@ stockChart data =
         chartConfig =
             [ CA.width 600
             , CA.height 300
-            , CA.margin { top = 30, bottom = 30, left = 40, right = 40 }
-            , CA.padding { top = 10, bottom = 10, left = 10, right = 10 }
+            , CA.margin { top = 30, bottom = 50, left = 60, right = 40 }
+            , CA.padding { top = 20, bottom = 10, left = 10, right = 10 }
             ]
 
         chart =
             C.chart chartConfig
-                [ C.xLabels [ CA.withGrid ]
-                , C.yLabels [ CA.withGrid ]
+                [ C.xLabels
+                    [ CA.withGrid
+                    , CA.amount 6
+                    , CA.fontSize 12
+                    , CA.rotate 45
+                    , CA.format (\x -> Maybe.withDefault "" (List.head (List.drop (round x) (List.map .label data))))
+                    ]
+                , C.yLabels
+                    [ CA.withGrid
+                    , CA.format formatPrice
+                    , CA.fontSize 12
+                    ]
                 , C.series .x
-                    [ C.interpolated .y [CA.color "#4299e1"] []
+                    [ C.interpolated .y
+                        [ CA.color "#4299e1"
+                        , CA.width 2
+                        ]
+                        [ CA.circle ]
                     ]
                     points
                 ]
     in
-    el
+    column
         [ width fill
-        , height (px 300)
-        , Border.rounded 10
-        , Border.width 1
-        , Border.color defaultTheme.colors.border
+        , spacing 10
         ]
-        (html chart)
+        [ el
+            [ width fill
+            , height (px 300)
+            , Border.rounded 10
+            , Border.width 1
+            , Border.color defaultTheme.colors.border
+            ]
+            (html chart)
+        , el
+            [ centerX
+            , Font.size 14
+            , Font.color defaultTheme.colors.textLight
+            ]
+            (text "IBM Stock Price")
+        ]
 
 
 loadingSpinner : Theme -> Element msg
