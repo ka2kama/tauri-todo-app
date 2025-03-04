@@ -15,6 +15,7 @@ type Page
     | AboutPage
     | TodoPage
     | CounterPage
+    | ChartsPage
 
 
 type alias Route =
@@ -29,6 +30,7 @@ parser =
         , Parser.map AboutPage (Parser.s "about")
         , Parser.map TodoPage (Parser.s "todo")
         , Parser.map CounterPage (Parser.s "counter")
+        , Parser.map ChartsPage (Parser.s "charts")
         ]
 
 
@@ -52,3 +54,6 @@ toPath page =
 
         CounterPage ->
             "/counter"
+
+        ChartsPage ->
+            "/charts"

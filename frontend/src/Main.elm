@@ -4,6 +4,7 @@ import Browser
 import Browser.Navigation as Nav
 import Element exposing (..)
 import Pages.About_
+import Pages.Charts_
 import Pages.Counter_
 import Pages.Home_
 import Pages.Todo_
@@ -27,6 +28,7 @@ type alias Model =
 type PageModel
     = TodoModel Pages.Todo_.Model
     | CounterModel Pages.Counter_.Model
+    | ChartsModel Pages.Charts_.Model
     | StaticPage
 
 
@@ -38,6 +40,7 @@ type Msg
     = SharedMsg Shared.Msg
     | TodoMsg Pages.Todo_.Msg
     | CounterMsg Pages.Counter_.Msg
+    | ChartsMsg Pages.Charts_.Msg
 
 
 main : Program Shared.Flags Model Msg
@@ -85,6 +88,13 @@ initPageModel page =
             in
             ( CounterModel initialModel, Cmd.map CounterMsg initialCmd )
 
+        Router.ChartsPage ->
+            let
+                ( initialModel, initialCmd ) =
+                    Pages.Charts_.init
+            in
+            ( ChartsModel initialModel, Cmd.map ChartsMsg initialCmd )
+
         _ ->
             ( StaticPage, Cmd.none )
 
@@ -126,6 +136,15 @@ update msg model =
             , Cmd.map CounterMsg counterCmd
             )
 
+        ( ChartsMsg pageMsg, ChartsModel pageModel ) ->
+            let
+                ( newChartsModel, chartsCmd ) =
+                    Pages.Charts_.update pageMsg pageModel
+            in
+            ( { model | pageModel = ChartsModel newChartsModel }
+            , Cmd.map ChartsMsg chartsCmd
+            )
+
         _ ->
             ( model, Cmd.none )
 
@@ -140,6 +159,9 @@ subscriptions model =
 
             CounterModel counterModel ->
                 Sub.map CounterMsg (Pages.Counter_.subscriptions counterModel)
+
+            ChartsModel chartsModel ->
+                Sub.map ChartsMsg (Pages.Charts_.subscriptions chartsModel)
 
             StaticPage ->
                 Sub.none
@@ -157,6 +179,7 @@ view model =
                     , Styles.navLink defaultTheme { url = Router.toPath Router.AboutPage, label = "About" }
                     , Styles.navLink defaultTheme { url = Router.toPath Router.TodoPage, label = "Todo" }
                     , Styles.navLink defaultTheme { url = Router.toPath Router.CounterPage, label = "Counter" }
+                    , Styles.navLink defaultTheme { url = Router.toPath Router.ChartsPage, label = "Charts" }
                     ]
                 , el [ width fill, height fill ] <|
                     case ( model.shared.page, model.pageModel ) of
@@ -175,6 +198,10 @@ view model =
                         ( Router.CounterPage, CounterModel counterModel ) ->
                             Element.map CounterMsg <|
                                 Pages.Counter_.view counterModel
+
+                        ( Router.ChartsPage, ChartsModel chartsModel ) ->
+                            Element.map ChartsMsg <|
+                                Pages.Charts_.view chartsModel
 
                         _ ->
                             Element.none
