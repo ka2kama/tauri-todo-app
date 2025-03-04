@@ -30,17 +30,10 @@ pub async fn get_chart_data(_app: AppHandle) -> Result<Vec<ChartData>, String> {
       API_KEY
    );
 
-   // Since ureq is synchronous, we need to spawn a blocking task
-   let result = tokio::task::spawn_blocking(move || {
-      let response = ureq::get(&url).call().map_err(|e| e.to_string())?;
+   let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
+   let data: MonthlyTimeSeries = response.json().await.map_err(|e| e.to_string())?;
 
-      let data: MonthlyTimeSeries = response.into_json().map_err(|e| e.to_string())?;
-      Ok::<MonthlyTimeSeries, String>(data)
-   })
-   .await
-   .map_err(|e| e.to_string())??;
-
-   let mut chart_data: Vec<ChartData> = result
+   let mut chart_data: Vec<ChartData> = data
       .time_series
       .into_iter()
       .take(6) // Take only the last 6 months
