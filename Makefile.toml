@@ -41,9 +41,8 @@ script = "cargo +nightly fmt --all"
 
 [tasks.fmt-frontend]
 description = "Format Elm code"
-script = '''
-cd frontend && elm-format src/ --yes
-'''
+cwd = "frontend"
+args = ["pnpm", "fmt"]
 
 [tasks.fmt]
 description = "Format all source code (Rust and Elm)"
