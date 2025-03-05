@@ -2,7 +2,7 @@ module CounterTest exposing (..)
 
 import Expect
 import Helpers.ElementHelpers exposing (renderView)
-import Pages.Counter_ exposing (Model, Msg(..), view)
+import Pages.Counter_ exposing (Model, Msg(..), init, update, view)
 import Test exposing (..)
 import Test.Html.Event as Event
 import Test.Html.Query as Query
@@ -95,6 +95,71 @@ suite =
                         |> renderView view
                         |> clickButton "Save Counter"
                         |> Event.expect SaveCounter
+            ]
+        , describe "Update Function"
+            [ test "increment increases counter by 1" <|
+                \_ ->
+                    let
+                        ( updatedModel, _ ) =
+                            update Increment initialModel
+                    in
+                    updatedModel.counter
+                        |> Expect.equal 1
+            , test "decrement decreases counter by 1" <|
+                \_ ->
+                    let
+                        ( updatedModel, _ ) =
+                            update Decrement initialModel
+                    in
+                    updatedModel.counter
+                        |> Expect.equal -1
+            , test "SaveCounter resets saved flag and issues command" <|
+                \_ ->
+                    let
+                        modelWithSaved =
+                            { initialModel | saved = True }
+
+                        ( updatedModel, cmd ) =
+                            update SaveCounter modelWithSaved
+                    in
+                    Expect.all
+                        [ .saved >> Expect.equal False
+                        , \_ -> Expect.notEqual cmd Cmd.none
+                        ]
+                        updatedModel
+            , test "CounterSaved updates saved status" <|
+                \_ ->
+                    let
+                        ( updatedModel, _ ) =
+                            update (CounterSaved True) initialModel
+                    in
+                    updatedModel.saved
+                        |> Expect.equal True
+            , test "CounterLoaded updates counter and sets saved to true" <|
+                \_ ->
+                    let
+                        ( updatedModel, _ ) =
+                            update (CounterLoaded 42) initialModel
+                    in
+                    Expect.all
+                        [ .counter >> Expect.equal 42
+                        , .saved >> Expect.equal True
+                        ]
+                        updatedModel
+            ]
+        , describe "Initialization"
+            [ test "init returns initial model and load command" <|
+                \_ ->
+                    let
+                        ( model, cmd ) =
+                            init
+                    in
+                    Expect.all
+                        [ .counter >> Expect.equal 0
+                        , .saved >> Expect.equal False
+                        , \_ -> Expect.notEqual cmd Cmd.none
+                        ]
+                        model
             ]
         , describe "Save Status Display"
             [ test "shows success message when counter is saved" <|

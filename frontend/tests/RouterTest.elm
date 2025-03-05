@@ -23,6 +23,7 @@ suite =
                     , ( "/about", AboutPage, "about page" )
                     , ( "/todo", TodoPage, "todo page" )
                     , ( "/counter", CounterPage, "counter page" )
+                    , ( "/charts", ChartsPage, "charts page" )
                     , ( "/unknown", HomePage, "unknown path" )
                     ]
              in
@@ -43,6 +44,7 @@ suite =
                     , ( AboutPage, "/about", "about route" )
                     , ( TodoPage, "/todo", "todo route" )
                     , ( CounterPage, "/counter", "counter route" )
+                    , ( ChartsPage, "/charts", "charts route" )
                     ]
              in
              List.map

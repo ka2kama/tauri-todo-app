@@ -1,4 +1,4 @@
-module Pages.Charts_ exposing (Model, Msg, init, subscriptions, update, view)
+module Pages.Charts_ exposing (Model, Msg(..), init, subscriptions, update, view)
 
 import Chart as C
 import Chart.Attributes as CA

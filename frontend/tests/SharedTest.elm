@@ -84,7 +84,7 @@ suite =
                         |> Expect.equal HomePage
             ]
         , describe "URL Changes"
-            [ test "updates route when URL changes" <|
+            [ test "updates route when URL changes to About" <|
                 \_ ->
                     let
                         ( updatedModel, _ ) =
@@ -93,6 +93,60 @@ suite =
                     in
                     updatedModel.page
                         |> Expect.equal AboutPage
+            , test "updates route when URL changes to Todo" <|
+                \_ ->
+                    let
+                        ( updatedModel, _ ) =
+                            createTestModel "/"
+                                |> testUpdate (UrlChanged (createTestUrl "/todo"))
+                    in
+                    updatedModel.page
+                        |> Expect.equal TodoPage
+            , test "updates route when URL changes to Counter" <|
+                \_ ->
+                    let
+                        ( updatedModel, _ ) =
+                            createTestModel "/"
+                                |> testUpdate (UrlChanged (createTestUrl "/counter"))
+                    in
+                    updatedModel.page
+                        |> Expect.equal CounterPage
+            , test "updates route when URL changes to Charts" <|
+                \_ ->
+                    let
+                        ( updatedModel, _ ) =
+                            createTestModel "/"
+                                |> testUpdate (UrlChanged (createTestUrl "/charts"))
+                    in
+                    updatedModel.page
+                        |> Expect.equal ChartsPage
+            , test "defaults to home route for unknown URLs" <|
+                \_ ->
+                    let
+                        ( updatedModel, _ ) =
+                            createTestModel "/"
+                                |> testUpdate (UrlChanged (createTestUrl "/unknown"))
+                    in
+                    updatedModel.page
+                        |> Expect.equal HomePage
+            ]
+        , describe "Link Handling"
+            [ test "handles internal link clicks" <|
+                \_ ->
+                    let
+                        ( _, cmd ) =
+                            createTestModel "/"
+                                |> testUpdate (LinkClicked (Browser.Internal (createTestUrl "/about")))
+                    in
+                    Expect.equal cmd Cmd.none
+            , test "handles external link clicks" <|
+                \_ ->
+                    let
+                        ( _, cmd ) =
+                            createTestModel "/"
+                                |> testUpdate (LinkClicked (Browser.External "https://example.com"))
+                    in
+                    Expect.equal cmd Cmd.none
             ]
         , describe "Flags Handling"
             [ test "can encode and decode empty flags" <|
