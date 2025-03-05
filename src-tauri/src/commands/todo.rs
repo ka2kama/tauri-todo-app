@@ -2,7 +2,7 @@ use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 use tauri::State;
 
-use crate::models::{self, Entity as Todos};
+use crate::models::{Todo, TodoActiveModel, TodoModel};
 
 #[derive(Debug, Deserialize)]
 pub struct AddTodoParams {
@@ -27,8 +27,8 @@ pub struct CommandResponse {
 }
 
 #[tauri::command]
-pub async fn get_todos(db: State<'_, DatabaseConnection>) -> Result<Vec<models::Model>, String> {
-   Todos::find()
+pub async fn get_todos(db: State<'_, DatabaseConnection>) -> Result<Vec<TodoModel>, String> {
+   Todo::find()
       .all(db.inner())
       .await
       .map_err(|e| e.to_string())
@@ -39,7 +39,7 @@ pub async fn add_todo(
    db: State<'_, DatabaseConnection>,
    params: AddTodoParams,
 ) -> Result<CommandResponse, String> {
-   let todo = models::ActiveModel {
+   let todo = TodoActiveModel {
       title: Set(params.title),
       completed: Set(false),
       ..Default::default()
@@ -59,7 +59,7 @@ pub async fn update_todo(
    db: State<'_, DatabaseConnection>,
    params: UpdateTodoParams,
 ) -> Result<CommandResponse, String> {
-   let todo = models::ActiveModel {
+   let todo = TodoActiveModel {
       id:        Set(params.id),
       title:     Set(params.title),
       completed: Set(params.completed),
@@ -79,7 +79,7 @@ pub async fn delete_todo(
    db: State<'_, DatabaseConnection>,
    params: DeleteTodoParams,
 ) -> Result<CommandResponse, String> {
-   Todos::delete_by_id(params.id)
+   Todo::delete_by_id(params.id)
       .exec(db.inner())
       .await
       .map_err(|e| e.to_string())

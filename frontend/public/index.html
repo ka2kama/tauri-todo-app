@@ -16,96 +16,108 @@
     <div id="app"></div>
     <script src="/dist/elm.js"></script>
     <script defer>
-        const { invoke } = window.__TAURI__.core;
-        // Get initial counter from localStorage
-        var initialCounter = localStorage.getItem('counter');
-        
-        // Initialize Elm application
-        var app = Elm.Main.init({
-            node: document.getElementById('app'),
-            flags: null
-        });
+        document.addEventListener('DOMContentLoaded', async () => {
+            
+            const { invoke } = window.__TAURI__.core;
+            
+            // Initialize Elm application
+            var app = Elm.Main.init({
+                node: document.getElementById('app'),
+                flags: null
+            });
 
-        // Send initial counter to Elm if it exists
-        if (initialCounter !== null) {
-            app.ports.counterLoaded.send(parseInt(initialCounter, 10));
-        }
+            // Counter port handlers
+            app.ports.loadCounter.subscribe(async function() {
+                try {
+                    const value = await invoke('load_counter');
+                    app.ports.counterLoaded.send(value);
+                    console.log('Counter loaded:', value);
+                } catch (error) {
+                    console.error('Error loading counter:', error);
+                    app.ports.counterLoaded.send(0);
+                }
+            });
+    
+            app.ports.saveCounter.subscribe(async function(counter) {
+                try {
+                    await invoke('save_counter', { value: counter });
+                    app.ports.counterSaved.send(true);
+                    console.log('Counter saved:', counter);
+                } catch (error) {
+                    console.error('Error saving counter:', error);
+                    app.ports.counterSaved.send(false);
+                }
+            });
 
-        // Counter port handlers
-        app.ports.saveCounter.subscribe(function(counter) {
-            localStorage.setItem('counter', counter);
-            app.ports.counterSaved.send(true);
-            console.log('Counter saved:', counter);
-        });
+            // Todo port handlers
+            app.ports.getTodos.subscribe(async function() {
+                try {
+                    const todos = await invoke('get_todos', { command: 'get_todos' });
+                    app.ports.todosLoaded.send(todos);
+                } catch (error) {
+                    console.error('Error fetching todos:', error);
+                }
+            });
 
-        // Todo port handlers
-        app.ports.getTodos.subscribe(async function() {
-            try {
-                const todos = await invoke('get_todos', { command: 'get_todos' });
-                app.ports.todosLoaded.send(todos);
-            } catch (error) {
-                console.error('Error fetching todos:', error);
-            }
-        });
+            app.ports.addTodo.subscribe(async function(title) {
+                try {
+                    await invoke('add_todo', { 
+                        command: 'add_todo',
+                        params: { title }
+                    });
+                    app.ports.todoAdded.send(true);
+                } catch (error) {
+                    console.error('Error adding todo:', error);
+                    app.ports.todoAdded.send(false);
+                }
+            });
 
-        app.ports.addTodo.subscribe(async function(title) {
-            try {
-                await invoke('add_todo', { 
-                    command: 'add_todo',
-                    params: { title }
-                });
-                app.ports.todoAdded.send(true);
-            } catch (error) {
-                console.error('Error adding todo:', error);
-                app.ports.todoAdded.send(false);
-            }
-        });
+            app.ports.deleteTodo.subscribe(async function(id) {
+                try {
+                    await invoke('delete_todo', {
+                        command: 'delete_todo',
+                        params: { id }
+                    });
+                    app.ports.todoDeleted.send(true);
+                } catch (error) {
+                    console.error('Error deleting todo:', error);
+                    app.ports.todoDeleted.send(false);
+                }
+            });
 
-        app.ports.deleteTodo.subscribe(async function(id) {
-            try {
-                await invoke('delete_todo', {
-                    command: 'delete_todo',
-                    params: { id }
-                });
-                app.ports.todoDeleted.send(true);
-            } catch (error) {
-                console.error('Error deleting todo:', error);
-                app.ports.todoDeleted.send(false);
-            }
-        });
+            app.ports.updateTodo.subscribe(async function(todo) {
+                try {
+                    await invoke('update_todo', {
+                        command: 'update_todo',
+                        params: {
+                            id: todo.id,
+                            title: todo.title,
+                            completed: todo.completed
+                        }
+                    });
+                    app.ports.todoUpdated.send(true);
+                } catch (error) {
+                    console.error('Error updating todo:', error);
+                    app.ports.todoUpdated.send(false);
+                }
+            });
 
-        app.ports.updateTodo.subscribe(async function(todo) {
-            try {
-                await invoke('update_todo', {
-                    command: 'update_todo',
-                    params: {
-                        id: todo.id,
-                        title: todo.title,
-                        completed: todo.completed
-                    }
-                });
-                app.ports.todoUpdated.send(true);
-            } catch (error) {
-                console.error('Error updating todo:', error);
-                app.ports.todoUpdated.send(false);
-            }
-        });
-
-        // Chart port handlers
-        app.ports.getStockPrices.subscribe(async function() {
-            try {
-                const chartData = await invoke('get_stock_prices', {});
-                app.ports.stockPricesLoaded.send({
-                    data: chartData,
-                    error: null
-                });
-            } catch (error) {
-                console.error('Error fetching stock price data:', error);
-                app.ports.stockPricesLoaded.send({
-                    data: null,
-                    error: error.message || 'Failed to fetch stock price data'
-                });
-            }
+            // Chart port handlers
+            app.ports.getStockPrices.subscribe(async function() {
+                try {
+                    const chartData = await invoke('get_stock_prices', {});
+                    app.ports.stockPricesLoaded.send({
+                        data: chartData,
+                        error: null
+                    });
+                } catch (error) {
+                    console.error('Error fetching stock price data:', error);
+                    app.ports.stockPricesLoaded.send({
+                        data: null,
+                        error: error.message || 'Failed to fetch stock price data'
+                    });
+                }
+            });
         });
     </script>
 </body>

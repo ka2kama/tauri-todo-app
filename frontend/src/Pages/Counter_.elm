@@ -24,7 +24,7 @@ init =
     ( { counter = 0
       , saved = False
       }
-    , Cmd.none
+    , CounterApi.loadCounter ()
     )
 
 

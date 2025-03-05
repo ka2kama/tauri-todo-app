@@ -4,6 +4,7 @@ mod models;
 
 use commands::{
    chart::get_stock_prices,
+   counter::{load_counter, save_counter},
    todo::{add_todo, delete_todo, get_todos, update_todo},
 };
 use tauri::Manager;
@@ -33,7 +34,9 @@ pub fn run() {
          add_todo,
          update_todo,
          delete_todo,
-         get_stock_prices
+         get_stock_prices,
+         save_counter,
+         load_counter
       ])
       .run(tauri::generate_context!())
       .expect("error while running tauri application");

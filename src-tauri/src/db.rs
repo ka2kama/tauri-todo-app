@@ -23,14 +23,28 @@ pub async fn init_db(app_handle: &tauri::AppHandle) -> Result<DatabaseConnection
 
    // Create tables if they don't exist
    let schema = Schema::new(sea_orm::DatabaseBackend::Sqlite);
-   let stmt = schema
-      .create_table_from_entity(super::models::Entity)
+
+   // Create todos table
+   let todos_stmt = schema
+      .create_table_from_entity(super::models::Todo)
       .if_not_exists()
       .to_string(SqliteQueryBuilder);
 
    db.execute(Statement::from_string(
       sea_orm::DatabaseBackend::Sqlite,
-      stmt,
+      todos_stmt,
+   ))
+   .await?;
+
+   // Create counter table
+   let counter_stmt = schema
+      .create_table_from_entity(super::models::Counter)
+      .if_not_exists()
+      .to_string(SqliteQueryBuilder);
+
+   db.execute(Statement::from_string(
+      sea_orm::DatabaseBackend::Sqlite,
+      counter_stmt,
    ))
    .await?;
 
