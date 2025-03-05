@@ -1,8 +1,24 @@
+use std::{fs, path::PathBuf};
+
 use sea_orm::{ConnectionTrait, Database, DatabaseConnection, DbErr, Schema, Statement};
 use sea_query::SqliteQueryBuilder;
+use tauri::Manager;
 
-pub async fn init_db(_app_handle: &tauri::AppHandle) -> Result<DatabaseConnection, DbErr> {
-   let db_url = "sqlite::memory:".to_string();
+pub async fn init_db(app_handle: &tauri::AppHandle) -> Result<DatabaseConnection, DbErr> {
+   // Get the app data directory
+   let app_data_dir = app_handle
+      .path()
+      .app_data_dir()
+      .expect("Failed to get app data directory");
+
+   // Create the directory if it doesn't exist
+   fs::create_dir_all(&app_data_dir).expect("Failed to create app data directory");
+
+   // Set up the database file path
+   let db_path: PathBuf = app_data_dir.join("todo.db");
+   let db_url = format!("sqlite://{}?mode=rwc", db_path.to_string_lossy());
+
+   // Connect to the database
    let db = Database::connect(&db_url).await?;
 
    // Create tables if they don't exist
