@@ -14,9 +14,15 @@ pub fn run() {
    tauri::Builder::default()
       .plugin(tauri_plugin_opener::init())
       .setup(|app| {
+         let window = app
+            .get_webview_window("main")
+            .expect("Failed to get main window");
+         window.set_size(tauri::Size::Logical(tauri::LogicalSize::new(
+            1200.0, 1000.0,
+         )))?;
+
          #[cfg(debug_assertions)] // only include this code on debug builds
          {
-            let window = app.get_webview_window("main").unwrap();
             window.open_devtools();
             window.close_devtools();
          }
