@@ -1,0 +1,56 @@
+{
+  "rules": [
+    {
+      "description": "Frontend Elm files",
+      "pattern": "frontend/src/.*\\.elm$",
+      "allowedOperations": ["read", "write", "delete"],
+      "lintCommand": "elm-format --validate",
+      "formatCommand": "cargo make fmt-frontend"
+    },
+    {
+      "description": "Frontend tests",
+      "pattern": "frontend/tests/.*\\.elm$",
+      "allowedOperations": ["read", "write", "delete"],
+      "lintCommand": "elm-format --validate",
+      "formatCommand": "cargo make fmt-frontend"
+    },
+    {
+      "description": "Rust source files",
+      "pattern": "src-tauri/src/.*\\.rs$",
+      "allowedOperations": ["read", "write", "delete"],
+      "lintCommand": "cargo clippy",
+      "formatCommand": "cargo fmt"
+    },
+    {
+      "description": "Rust tests",
+      "pattern": "src-tauri/tests/.*\\.rs$",
+      "allowedOperations": ["read", "write", "delete"],
+      "lintCommand": "cargo clippy",
+      "formatCommand": "cargo fmt"
+    },
+    {
+      "description": "Configuration files",
+      "pattern": "(frontend/elm\\.json|frontend/package\\.json|src-tauri/Cargo\\.toml|src-tauri/tauri\\.conf\\.json5)$",
+      "allowedOperations": ["read", "write"],
+      "requireApproval": true
+    },
+    {
+      "description": "Build artifacts and dependencies",
+      "pattern": "(frontend/node_modules/|src-tauri/target/|.*\\.lock$)",
+      "allowedOperations": ["read"],
+      "ignored": true
+    },
+    {
+      "description": "Documentation",
+      "pattern": ".*\\.(md|txt)$",
+      "allowedOperations": ["read", "write"]
+    }
+  ],
+  "globalSettings": {
+    "defaultBranch": "main",
+    "requireTests": true,
+    "testCommand": "make test",
+    "buildCommand": "make build",
+    "formatOnSave": true
+  }
+}

@@ -1,4 +1,4 @@
-port module Lib.Chart.Api.ChartApi exposing (StockPrice, StockPriceResponse, stockPricesLoaded, getStockPrices)
+port module Lib.Chart.Api.ChartApi exposing (StockPrice, StockPriceResponse, getStockPrices, stockPricesLoaded)
 
 
 type alias StockPrice =
